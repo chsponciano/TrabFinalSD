@@ -185,41 +185,7 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    <script>
-        var i,
-            s,
-            N = 10,
-            E = 15,
-            g = {
-                nodes: [],
-                edges: []
-            };
-
-        // Generate a random graph:
-        for (i = 0; i < N; i++)
-            g.nodes.push({
-                id: 'n' + i,
-                label: 'Node ' + i,
-                x: Math.random(),
-                y: Math.random(),
-                size: 10,
-                color: '#007bff'
-            });
-
-        for (i = 0; i < E; i++)
-            g.edges.push({
-                id: 'e' + i,
-                source: 'n' + (Math.random() * N | 0),
-                target: 'n' + (Math.random() * N | 0),
-                size: 10,
-                color: '#CCC'
-            });
-
-        s = new sigma({
-            graph: g,
-            container: 'graph-container'
-        });
-    </script>
+    <script src="js/sigma.js"></script>
 </body>
 
 </html>

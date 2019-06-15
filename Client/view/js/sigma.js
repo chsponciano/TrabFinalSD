@@ -1,7 +1,7 @@
 var i,
     s,
     N = 10,
-    E = 25,
+    E = 15,
     g = {
         nodes: [],
         edges: []
@@ -14,8 +14,8 @@ for (i = 0; i < N; i++)
         label: 'Node ' + i,
         x: Math.random(),
         y: Math.random(),
-        size: Math.random(),
-        color: '#666'
+        size: 10,
+        color: '#007bff'
     });
 
 for (i = 0; i < E; i++)
@@ -23,12 +23,35 @@ for (i = 0; i < E; i++)
         id: 'e' + i,
         source: 'n' + (Math.random() * N | 0),
         target: 'n' + (Math.random() * N | 0),
-        size: Math.random(),
-        color: '#ccc'
+        size: 10,
+        color: '#CCC'
     });
 
-// Instantiate sigma:
 s = new sigma({
     graph: g,
-    container: 'graph-area'
+    container: 'graph-container'
+});
+
+$(function() {
+    $("#graph-container").mouseenter(function() {
+        document.querySelector('#graph-container').style.cursor = 'grab';
+    });
+});
+
+$(function() {
+    $("#graph-container").mouseout(function() {
+        document.querySelector('#graph-container').style.cursor = 'default';
+    });
+});
+
+$(function() {
+    $("#graph-container").mousedown(function() {
+        document.querySelector('#graph-container').style.cursor = 'grabbing';
+    });
+});
+
+$(function() {
+    $("#graph-container").mouseup(function() {
+        document.querySelector('#graph-container').style.cursor = 'grab';
+    });
 });
