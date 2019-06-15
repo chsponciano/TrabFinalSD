@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.4.0/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="src/sigma.core.js"></script>
+    <script src="src/conrad.js"></script>
+    <script src="src/utils/sigma.utils.js"></script>
+    <script src="src/utils/sigma.polyfills.js"></script>
+    <script src="src/sigma.settings.js"></script>
+    <script src="src/classes/sigma.classes.dispatcher.js"></script>
+    <script src="src/classes/sigma.classes.configurable.js"></script>
+    <script src="src/classes/sigma.classes.graph.js"></script>
+    <script src="src/classes/sigma.classes.camera.js"></script>
+    <script src="src/classes/sigma.classes.quad.js"></script>
+    <script src="src/classes/sigma.classes.edgequad.js"></script>
+    <script src="src/captors/sigma.captors.mouse.js"></script>
+    <script src="src/captors/sigma.captors.touch.js"></script>
+    <script src="src/renderers/sigma.renderers.canvas.js"></script>
+    <script src="src/renderers/sigma.renderers.webgl.js"></script>
+    <script src="src/renderers/sigma.renderers.svg.js"></script>
+    <script src="src/renderers/sigma.renderers.def.js"></script>
+    <script src="src/renderers/webgl/sigma.webgl.nodes.def.js"></script>
+    <script src="src/renderers/webgl/sigma.webgl.nodes.fast.js"></script>
+    <script src="src/renderers/webgl/sigma.webgl.edges.def.js"></script>
+    <script src="src/renderers/webgl/sigma.webgl.edges.fast.js"></script>
+    <script src="src/renderers/webgl/sigma.webgl.edges.arrow.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.labels.def.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.hovers.def.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.nodes.def.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.edges.def.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.edges.curve.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.edges.arrow.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.edges.curvedArrow.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.edgehovers.def.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.edgehovers.curve.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.edgehovers.arrow.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.edgehovers.curvedArrow.js"></script>
+    <script src="src/renderers/canvas/sigma.canvas.extremities.def.js"></script>
+    <script src="src/renderers/svg/sigma.svg.utils.js"></script>
+    <script src="src/renderers/svg/sigma.svg.nodes.def.js"></script>
+    <script src="src/renderers/svg/sigma.svg.edges.def.js"></script>
+    <script src="src/renderers/svg/sigma.svg.edges.curve.js"></script>
+    <script src="src/renderers/svg/sigma.svg.labels.def.js"></script>
+    <script src="src/renderers/svg/sigma.svg.hovers.def.js"></script>
+    <script src="src/middlewares/sigma.middlewares.rescale.js"></script>
+    <script src="src/middlewares/sigma.middlewares.copy.js"></script>
+    <script src="src/misc/sigma.misc.animation.js"></script>
+    <script src="src/misc/sigma.misc.bindEvents.js"></script>
+    <script src="src/misc/sigma.misc.bindDOMEvents.js"></script>
+    <script src="src/misc/sigma.misc.drawHovers.js"></script>
+    <title>Trabalho Final de Sistema Distribuidos</title>
+</head>
+
+<body>
+    <section class="row row-graph">
+        <section class="col-sm-9 graph-area" id="graph-container"></section>
+        <section class="col-sm-3 control-area">
+            <div class="control-area-ttl">Lista de Servidores</div>
+            <div class="control-area-list">
+                <article>
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <div>Node 1</div>
+                            <div>192.168.47.5</div>
+                        </div>
+                        <div class="col-sm-4 control-area-list-chk">
+                            <input type="checkbox" checked data-toggle="toggle" data-style="ios">
+                        </div>
+                    </div>
+                </article>
+                <article>
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <div>Node 1</div>
+                            <div>192.168.47.5</div>
+                        </div>
+                        <div class="col-sm-4 control-area-list-chk">
+                            <input type="checkbox" checked data-toggle="toggle" data-style="ios">
+                        </div>
+                    </div>
+                </article>
+                <article>
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <div>Node 1</div>
+                            <div>192.168.47.5</div>
+                        </div>
+                        <div class="col-sm-4 control-area-list-chk">
+                            <input type="checkbox" checked data-toggle="toggle" data-style="ios">
+                        </div>
+                    </div>
+                </article>
+                <article>
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <div>Node 1</div>
+                            <div>192.168.47.5</div>
+                        </div>
+                        <div class="col-sm-4 control-area-list-chk">
+                            <input type="checkbox" checked data-toggle="toggle" data-style="ios">
+                        </div>
+                    </div>
+                </article>
+                <article>
+                    <div class="row">
+                        <div class="col-sm-8">
+                            <div>Node 1</div>
+                            <div>192.168.47.5</div>
+                        </div>
+                        <div class="col-sm-4 control-area-list-chk">
+                            <input type="checkbox" checked data-toggle="toggle" data-style="ios">
+                        </div>
+                    </div>
+                </article>
+            </div>
+            <div>
+                <div class="control-area-ttl" data-toggle="collapse" data-target="#instServidor" style="cursor: pointer;">Instanciar Servidor</div>
+                <div id="instServidor" class="collapse">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">ID</span>
+                        </div>
+                        <input type="text" class="form-control" placeholder="Identificação" aria-label="id" aria-describedby="basic-addon1">
+                    </div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">MS</span>
+                        </div>
+                        <input type="number" class="form-control" placeholder="Tempo de execução" aria-label="Tempo" aria-describedby="basic-addon1">
+                    </div>
+                    <button type="button" class="btn btn-primary">Instanciar</button>
+                </div>
+                <div class="control-area-ttl" data-toggle="collapse" data-target="#msgServidor" style="cursor: pointer;">Calcular Distancia</div>
+                <div id="msgServidor" class="collapse">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="inputGroupSelect01">Origem</label>
+                        </div>
+                        <select class="custom-select" id="inputGroupSelect01">
+                                <option selected></option>
+                                <option value="1">Node 1</option>
+                                <option value="1">Node 2</option>
+                                <option value="1">Node 3</option>
+                            </select>
+                    </div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="inputGroupSelect01">Destino</label>
+                        </div>
+                        <select class="custom-select" id="inputGroupSelect01">
+                                <option selected></option>
+                                <option value="1">Node 1</option>
+                                <option value="1">Node 2</option>
+                                <option value="1">Node 3</option>
+                            </select>
+                    </div>
+                    <button type="button" class="btn btn-primary">Calcular</button>
+                </div>
+            </div>
+            <footer>
+                <div class="row">
+                    <div class="col-sm-4 menu-alg">
+                        <div class="input-group mb-3">
+                            <select class="custom-select" id="algoritmos">
+                                    <option selected>Algortimos...</option>
+                                    <option value="1">Dijsktra</option>
+                                    <option value="2">Vizinho</option>
+                                    <option value="3">Carteiro</option>
+                                </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-8 connect-coord"><b>Coordenador:</b>&nbsp;192.168.35.2</div>
+                </div>
+            </footer>
+        </section>
+    </section>
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.4.0/js/bootstrap4-toggle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script>
+        var i,
+            s,
+            N = 10,
+            E = 15,
+            g = {
+                nodes: [],
+                edges: []
+            };
+
+        // Generate a random graph:
+        for (i = 0; i < N; i++)
+            g.nodes.push({
+                id: 'n' + i,
+                label: 'Node ' + i,
+                x: Math.random(),
+                y: Math.random(),
+                size: 10,
+                color: '#007bff'
+            });
+
+        for (i = 0; i < E; i++)
+            g.edges.push({
+                id: 'e' + i,
+                source: 'n' + (Math.random() * N | 0),
+                target: 'n' + (Math.random() * N | 0),
+                size: 10,
+                color: '#CCC'
+            });
+
+        s = new sigma({
+            graph: g,
+            container: 'graph-container'
+        });
+    </script>
+</body>
+
+</html>

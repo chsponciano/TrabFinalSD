@@ -1,0 +1,106 @@
+html,
+body {
+    background-color: white;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+.row {
+    margin: 0px !important;
+}
+
+.row-graph {
+    height: 100%;
+    background-size: 40px 40px;
+    background-image: radial-gradient(circle, #000000 1px, rgba(0, 0, 0, 0) 1px);
+}
+
+section {
+    height: 100%;
+}
+
+section .graph-area {
+    padding: 0px;
+}
+
+section .control-area {
+    background-color: white;
+    border-left-color: #007bff;
+    border-left-style: solid;
+    border-left-width: 3px;
+    margin: 0px !important;
+    padding: 0px;
+}
+
+.control-area-ttl {
+    background-color: #007bff;
+    color: white;
+    padding: 5px;
+    text-align: center;
+    font-weight: bolder;
+}
+
+.connect-coord,
+.control-area-list-chk {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.menu-alg {
+    padding: 5px;
+    margin: 0px !important;
+    margin-bottom: 23px !important;
+}
+
+.menu-alg select {
+    position: absolute !important;
+    width: 100% !important;
+    margin-bottom: 13px !important;
+}
+
+.control-area-list {
+    max-height: 40%;
+    overflow-y: auto;
+}
+
+.control-area-list article {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    cursor: pointer;
+    border-bottom-color: rgb(225, 225, 233);
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+.control-area-list article:hover {
+    background-color: rgb(225, 225, 233);
+}
+
+#instServidor,
+#msgServidor {
+    padding: 10px;
+}
+
+footer {
+    background-color: #007bff;
+    color: white;
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    z-index: 99999 !important;
+    font-size: 12px;
+}
+
+.toggle.ios,
+.toggle-on.ios,
+.toggle-off.ios {
+    border-radius: 20rem;
+}
+
+.toggle.ios .toggle-handle {
+    border-radius: 20rem;
+}
