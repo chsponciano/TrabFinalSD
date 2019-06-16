@@ -59,3 +59,9 @@ typings/
 
 # next.js build output
 .next
+
+# Python
+ServerApp/__pycache__
+
+# Visual Studio Code
+ServerApp/.vscode/

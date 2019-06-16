@@ -1,0 +1,62 @@
+from pika import BlockingConnection, ConnectionParameters
+from ServerAppHandlers import ServerAppHandlers
+from ServerAppSender import ServerAppSender
+from ServerAppMapper import ServerAppMapper
+from threading import Thread
+from json import loads
+from ast import literal_eval
+import ServerAppQueue
+
+ 
+class ServerAppListener(object): 
+    def __init__(self, server_app_queue: ServerAppQueue, sender: ServerAppSender, mapper: ServerAppMapper):
+        self.server_app_queue = server_app_queue
+        self.handlers = ServerAppHandlers(sender, self.server_app_queue, mapper)
+        self.queue_name = self.server_app_queue.get_queue_name()
+        self.set_message_handler_mapper(self.get_default_message_handler_mapper())
+        self.server_app_queue.get_channel().basic_consume(queue=self.queue_name, on_message_callback=self.callback_method, auto_ack=True)
+    
+    def callback_method(self, ch, method, properties, body):
+        try:
+            message = self.binary_to_dict(body)
+            if not (('message' in message and 'args' in message) and (isinstance(message['message'], str) and isinstance(message['args'], dict))):
+                raise Exception()
+            print(f'Message being handled. {message}')
+            self.handle_message(message)
+        except Exception:
+            print(f'Cannot handle message. {message}')
+    
+    def handle_message(self, message: dict):
+        mapper = self.get_message_handler_mapper()
+        if message['message'] in mapper:
+            mapper[message['message']](message['args'])
+        else:
+            print(f'No implementation for {message} found!')
+
+    def binary_to_dict(self, binary_json) -> dict:
+        return literal_eval(binary_json.decode('utf-8'))
+
+    def start_listening(self):
+        self.server_app_queue.get_channel().start_consuming()
+    
+    def start_listening_async(self):
+        thread = Thread(target=self.start_listening)
+        thread.start()
+    
+    def stop_listening(self):
+        self.server_app_queue.get_channel().stop_consuming()
+
+    def set_message_handler_mapper(self, message_handler_mapper):
+        self.message_handler_mapper = message_handler_mapper
+
+    def get_message_handler_mapper(self):
+        return self.message_handler_mapper
+
+    def get_default_message_handler_mapper(self):
+        return {
+            'teste': self.handlers.teste,
+            'first_connect': self.handlers.first_connect,
+            'connect_to': self.handlers.connect_to,
+            'ping_everyone': self.handlers.ping_everyone,
+            'ping': self.handlers.ping,
+        }
