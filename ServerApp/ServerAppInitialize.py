@@ -2,8 +2,11 @@ from ServerAppSender import ServerAppSender
 from ServerAppListener import ServerAppListener
 from ServerAppQueue import ServerAppQueue
 from ServerAppMapper import ServerAppMapper
+from colorama import init, Fore
 import sys
 
+
+init()
 args = sys.argv
 
 if len(args) < 2:

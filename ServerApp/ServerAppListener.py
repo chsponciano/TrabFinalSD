@@ -23,8 +23,8 @@ class ServerAppListener(object):
                 raise Exception()
             print(f'Message being handled. {message}')
             self.handle_message(message)
-        except Exception:
-            print(f'Cannot handle message. {message}')
+        except Exception as e:
+            print(f'Cannot handle message. {message} {e}')
     
     def handle_message(self, message: dict):
         mapper = self.get_message_handler_mapper()
@@ -59,4 +59,7 @@ class ServerAppListener(object):
             'connect_to': self.handlers.connect_to,
             'ping_everyone': self.handlers.ping_everyone,
             'ping': self.handlers.ping,
+            'dijkstra': self.handlers.dijkstra,
+            'start_dijkstra': self.handlers.start_dijkstra,
+            'dijkstra_done': self.handlers.dijkstra_done
         }
