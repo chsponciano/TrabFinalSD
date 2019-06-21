@@ -9,12 +9,16 @@ import ServerAppQueue
 
  
 class ServerAppListener(object): 
-    def __init__(self, server_app_queue: ServerAppQueue, sender: ServerAppSender, mapper: ServerAppMapper):
-        self.server_app_queue = server_app_queue
-        self.handlers = ServerAppHandlers(sender, self.server_app_queue, mapper)
-        self.queue_name = self.server_app_queue.get_queue_name()
+    def __init__(self, queue: ServerAppQueue, sender: ServerAppSender, mapper: ServerAppMapper):
+        self.queue      = queue
+        self.handlers   = ServerAppHandlers(sender, self.queue, mapper)
+        self.queue_name = self.queue.get_queue_name()
         self.set_message_handler_mapper(self.get_default_message_handler_mapper())
-        self.server_app_queue.get_channel().basic_consume(queue=self.queue_name, on_message_callback=self.callback_method, auto_ack=True)
+        self.queue.get_channel().basic_consume(
+            queue=self.queue_name, 
+            on_message_callback=self.callback_method, 
+            auto_ack=True
+        )
     
     def callback_method(self, ch, method, properties, body):
         try:
@@ -37,14 +41,14 @@ class ServerAppListener(object):
         return literal_eval(binary_json.decode('utf-8'))
 
     def start_listening(self):
-        self.server_app_queue.get_channel().start_consuming()
+        self.queue.get_channel().start_consuming()
     
     def start_listening_async(self):
         thread = Thread(target=self.start_listening)
         thread.start()
     
     def stop_listening(self):
-        self.server_app_queue.get_channel().stop_consuming()
+        self.queue.get_channel().stop_consuming()
 
     def set_message_handler_mapper(self, message_handler_mapper):
         self.message_handler_mapper = message_handler_mapper
@@ -54,8 +58,6 @@ class ServerAppListener(object):
 
     def get_default_message_handler_mapper(self):
         return {
-            'teste': self.handlers.teste,
-            'first_connect': self.handlers.first_connect,
             'connect_to': self.handlers.connect_to,
             'ping_everyone': self.handlers.ping_everyone,
             'ping': self.handlers.ping,

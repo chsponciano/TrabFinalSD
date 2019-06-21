@@ -11,33 +11,10 @@ class ServerAppHandlers(object):
         self.sender = sender
         self.queue = queue
     
-    def teste(self, args: dict):
-        print(f'Mensagem teste recebida! args: {args}')
-
-    def first_connect(self, args: dict):
-        '''
-        Recebe a primeira mensagem enviada por uma nova instancia.
-        Adiciona a nova instancia em sua lista de conexões.
-        Envia uma mensagem para essa instancia para ser adicionada na lista de conexões dela
-        '''
-        sender = args['sender_queue_name']
-        if not self.mapper.is_connected_to(sender):
-            self.mapper.connect_to(sender)
-            print(f'Connection between nodes {self.queue.get_queue_name()} and {sender} has been established.')
-            message = {
-                'message': 'connect_to',
-                'args': {
-                    'node': self.queue.get_queue_name()
-                }
-            }
-            self.sender.send_message_to(message, to=sender)
-            print(f'Requesting {sender} to add {self.queue.get_queue_name()} to it\'s list of conections.')
-        else:
-            raise Exception()
-
     def connect_to(self, args: dict):
         '''
         Se conecta com o nó requisitado
+        É feita somente uma conexão unidirecional, se o nó enviado no args deve conhece esse nó também, ele deverá receber a mensma mensagem
         '''
         node = args['node']
         self.mapper.connect_to(node)
@@ -55,6 +32,9 @@ class ServerAppHandlers(object):
         print(f'{self.queue.get_queue_name()} pinged.')
 
     def dijkstra(self, args: dict):
+        '''
+        Algoritmo que é chamado a cada iteração de Dijkstra
+        '''
         source_node = args['source']['node']
         source_dist = args['source']['dist'] + 1
         target_node = args['target_node']
@@ -91,6 +71,10 @@ class ServerAppHandlers(object):
     
 
     def start_dijkstra(self, args: dict):
+        '''
+        Handler para a mensagem de inicio do algoritmo de Dijkstra
+        Espera receber somente o argumento target_node que é o node ao qual é buscado o menor caminho
+        '''
         self.dijkstra({
             'source': {
                 'node': self.queue.get_queue_name(),
@@ -101,4 +85,8 @@ class ServerAppHandlers(object):
         })
 
     def dijkstra_done(self, args: dict):
+        '''
+        Handler para a mensagem enviada indicando o fim do algoritmo
+        Nesse caso é um handler placeholder, já que na impl final esse handler deverá estar no app frontend
+        '''
         print(f'dijkstra_done: {args}')

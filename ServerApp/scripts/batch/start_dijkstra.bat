@@ -1,0 +1,1 @@
+start "start_dijkstra" "C:\Users\vinic\Desktop\TrabFinalSD\ServerApp\scripts\python\start_algorithm.py" "q1" "start_dijkstra" "target_node" "q5"
