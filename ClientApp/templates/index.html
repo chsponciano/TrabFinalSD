@@ -63,61 +63,18 @@
         <section class="col-sm-3 control-area">
             <div class="control-area-ttl">Lista de Servidores</div>
             <div class="control-area-list">
+                {% for i in range(1, 10) %}
                 <article>
                     <div class="row">
-                        <div class="col-sm-8">
-                            <div>Node 1</div>
-                            <div>192.168.47.5</div>
+                        <div class="col-sm-8 ds-node">
+                            <div>Node {{i}}<br>{{i * 10}}ms</div>
                         </div>
                         <div class="col-sm-4 control-area-list-chk">
                             <input type="checkbox" checked data-toggle="toggle" data-style="ios">
                         </div>
                     </div>
                 </article>
-                <article>
-                    <div class="row">
-                        <div class="col-sm-8">
-                            <div>Node 1</div>
-                            <div>192.168.47.5</div>
-                        </div>
-                        <div class="col-sm-4 control-area-list-chk">
-                            <input type="checkbox" checked data-toggle="toggle" data-style="ios">
-                        </div>
-                    </div>
-                </article>
-                <article>
-                    <div class="row">
-                        <div class="col-sm-8">
-                            <div>Node 1</div>
-                            <div>192.168.47.5</div>
-                        </div>
-                        <div class="col-sm-4 control-area-list-chk">
-                            <input type="checkbox" checked data-toggle="toggle" data-style="ios">
-                        </div>
-                    </div>
-                </article>
-                <article>
-                    <div class="row">
-                        <div class="col-sm-8">
-                            <div>Node 1</div>
-                            <div>192.168.47.5</div>
-                        </div>
-                        <div class="col-sm-4 control-area-list-chk">
-                            <input type="checkbox" checked data-toggle="toggle" data-style="ios">
-                        </div>
-                    </div>
-                </article>
-                <article>
-                    <div class="row">
-                        <div class="col-sm-8">
-                            <div>Node 1</div>
-                            <div>192.168.47.5</div>
-                        </div>
-                        <div class="col-sm-4 control-area-list-chk">
-                            <input type="checkbox" checked data-toggle="toggle" data-style="ios">
-                        </div>
-                    </div>
-                </article>
+                {% endfor %}
             </div>
             <div>
                 <div class="control-area-ttl" data-toggle="collapse" data-target="#instServidor" style="cursor: pointer;">Instanciar Servidor</div>
@@ -140,9 +97,9 @@
                 <div id="msgServidor" class="collapse">
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
-                            <label class="input-group-text" for="inputGroupSelect01">Origem</label>
+                            <label class="input-group-text">Origem</label>
                         </div>
-                        <select class="custom-select" id="inputGroupSelect01">
+                        <select class="custom-select">
                                 <option selected></option>
                                 <option value="1">Node 1</option>
                                 <option value="1">Node 2</option>
@@ -151,32 +108,32 @@
                     </div>
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
-                            <label class="input-group-text" for="inputGroupSelect01">Destino</label>
+                            <label class="input-group-text">Destino</label>
                         </div>
-                        <select class="custom-select" id="inputGroupSelect01">
+                        <select class="custom-select">
                                 <option selected></option>
                                 <option value="1">Node 1</option>
                                 <option value="1">Node 2</option>
                                 <option value="1">Node 3</option>
                             </select>
                     </div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text">Algoritmos</label>
+                        </div>
+                        <select class="custom-select">
+                                <option selected></option>
+                                <option value="1">Dijsktra</option>
+                                <option value="2">Vizinho</option>
+                                <option value="3">Carteiro</option>
+                            </select>
+                    </div>
                     <button type="button" class="btn btn-primary">Calcular</button>
                 </div>
             </div>
             <footer>
-                <div class="row">
-                    <div class="col-sm-4 menu-alg">
-                        <div class="input-group mb-3">
-                            <select class="custom-select" id="algoritmos">
-                                    <option selected>Algortimos...</option>
-                                    <option value="1">Dijsktra</option>
-                                    <option value="2">Vizinho</option>
-                                    <option value="3">Carteiro</option>
-                                </select>
-                        </div>
-                    </div>
-                    <div class="col-sm-8 connect-coord"><b>Coordenador:</b>&nbsp;192.168.35.2</div>
-                </div>
+                <label>Github: </label>
+                <a href="https://github.com/chsponciano/TrabFinalSD">@TrabFinalSD</a>
             </footer>
         </section>
     </section>

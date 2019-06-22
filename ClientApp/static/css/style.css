@@ -99,6 +99,22 @@ footer {
     width: 100%;
     z-index: 99999 !important;
     font-size: 12px;
+    text-align: right;
+    padding-top: 6px;
+    padding-right: 5px;
+}
+
+footer a,
+footer a:hover {
+    color: white;
+    text-decoration: none;
+}
+
+.ds-node {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 
 .toggle.ios,
