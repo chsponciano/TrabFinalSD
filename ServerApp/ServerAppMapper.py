@@ -1,3 +1,5 @@
+from math import inf as INFINITY
+
 class ServerAppMapper(object):
     def __init__(self):
         self.connected_queues = set()
@@ -8,7 +10,7 @@ class ServerAppMapper(object):
             raise Exception()
         else:
             self.connected_queues.add(queue)
-            self.queue_mapper[queue] = {'dist': 1}
+            self.queue_mapper[queue] = {'dist': INFINITY}
 
     def is_connected_to(self, queue: str) -> bool:
         return queue in self.connected_queues

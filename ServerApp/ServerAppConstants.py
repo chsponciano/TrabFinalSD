@@ -1,2 +1,1 @@
-SERVER_IP = 'rabbit'
-FRONTEND_QUEUE = 'frontend-queue'
+SERVER_IP = 'localhost'

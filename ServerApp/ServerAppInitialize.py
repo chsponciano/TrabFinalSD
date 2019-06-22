@@ -7,18 +7,18 @@ import sys
 
 
 init()
-args = sys.argv
+args = sys.argv[1:]
 
-if len(args) != 2:
-    raise Exception()
+assert len(args) is 2
 
-this_queue_name = args[1]
+this_queue_name = args[0]
+processing_time = args[1]
 
 mapper = ServerAppMapper()
-queue = ServerAppQueue(this_queue_name)
+queue = ServerAppQueue(this_queue_name, processing_time)
 sender = ServerAppSender(queue)
 listener = ServerAppListener(queue, sender, mapper)
 
 listener.start_listening_async()
 
-print(f'Queue initialized with name {this_queue_name}.')
+print(f'Queue initialized with name {this_queue_name} and processing time of {processing_time}.')
