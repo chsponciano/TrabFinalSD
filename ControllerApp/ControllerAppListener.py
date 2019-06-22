@@ -60,5 +60,7 @@ class ControllerAppListener(object):
             'get_all_nodes': self.handlers.get_all_nodes,
             'calc_route': self.handlers.calc_route,
             'create_node': self.handlers.create_node,
-            'connect_nodes': self.handlers.connect_nodes
+            'connect_nodes': self.handlers.connect_nodes,
+            'healthcheck': self.handlers.healthcheck,
+            'ping_healthcheck': self.handlers.ping_healthcheck
         }

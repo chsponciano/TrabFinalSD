@@ -29,12 +29,12 @@ create_node = {
 
 connect_nodes = {
     'node1': 'q2',
-    'node2': 'q3'
+    'node2': 'q1'
 }
 
 message = {
-    'message': 'get_all_nodes',
-    'args': get_all_nodes
+    'message': 'healthcheck',
+    'args': {}
 }
 
 channel.basic_publish(exchange='', routing_key='controller-queue', body=dumps(message))

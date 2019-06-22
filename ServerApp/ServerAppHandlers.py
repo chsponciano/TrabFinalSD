@@ -1,6 +1,7 @@
 from ServerAppMapper import ServerAppMapper
 from ServerAppSender import ServerAppSender
 from ServerAppQueue import ServerAppQueue
+from ServerAppConstants import CONTROLLER_QUEUE
 from colorama import Fore, Style
 
 
@@ -107,3 +108,14 @@ class ServerAppHandlers(object):
         Nesse caso é um handler placeholder, já que na impl final esse handler deverá estar no app frontend
         '''
         print(f'dijkstra_done: {args}')
+
+    def healthcheck(self, args: dict):
+        self.sender.send_message_to(
+            to=CONTROLLER_QUEUE,
+            message={
+                'message': 'ping_healthcheck',
+                'args': {
+                    'node': self.queue.get_queue_name()
+                }
+            }
+        )

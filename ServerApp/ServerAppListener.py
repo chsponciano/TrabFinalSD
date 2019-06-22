@@ -64,5 +64,6 @@ class ServerAppListener(object):
             'ping': self.handlers.ping,
             'dijkstra': self.handlers.dijkstra,
             'start_dijkstra': self.handlers.start_dijkstra,
-            'dijkstra_done': self.handlers.dijkstra_done
+            'dijkstra_done': self.handlers.dijkstra_done,
+            'healthcheck': self.handlers.healthcheck
         }

@@ -72,7 +72,8 @@ class ControllerAppHandlers(object):
         if not self.node_controller.exists(node_name):
             # Cria o registro do nó no banco de dados
             self.node_controller.create_node(node_name, processing_time)
-            self.amazon.new_instance(node_name, processing_time)
+            # TODO - mandar msg pro front subir o container
+            # os.popen(f'start "cmd" "C:\\Users\\vinic\\Desktop\\TrabFinalSD\\ServerApp\\ServerAppInitialize.py" "{node_name}" "{processing_time}"')
         else:
             print(f'{Fore.RED}Node {node_name} already exist.')
 
@@ -83,6 +84,8 @@ class ControllerAppHandlers(object):
         node1 = args['node1']
         node2 = args['node2']
         if self.node_controller.has_control_over_nodes(node1, node2):
+            self.node_controller.add_connection_to(node1, node2)
+            self.node_controller.add_connection_to(node2, node1)
             self.sender.send_message_to(
                 to=node1,
                 message={
@@ -103,3 +106,30 @@ class ControllerAppHandlers(object):
             )
         else:
             print(f'{Fore.RED}This controller app has no control over the nodes {node1} and {node2}.{Style.RESET_ALL}')
+
+    def healthcheck(self, args: dict):
+        down_nodes = self.node_controller.get_down_nodes()
+        for node in down_nodes:
+            node_name = node['node_name']
+            processing_time = node['processing_time']
+            connections = node['connections']
+            # TODO - mandar msg pro front subir o container
+            # os.popen(f'start "cmd" "C:\\Users\\vinic\\Desktop\\TrabFinalSD\\ServerApp\\ServerAppInitialize.py" "{node_name}" "{processing_time}"')
+            for connection in connections:
+                self.sender.send_message_to(
+                    to=node_name, 
+                    message={
+                        'message': 'connect_to',
+                        'args': {
+                            'node': connection
+                        }
+                    }
+                )
+        
+        self.node_controller.reset_all_pinged_back()
+        all_nodes = self.node_controller.get_all_node_names()
+        for node in all_nodes:
+            self.sender.send_message_to(to=node, message='healthcheck')
+
+    def ping_healthcheck(self, args: dict):
+        self.node_controller.set_pinged_back(args['node'], True)
