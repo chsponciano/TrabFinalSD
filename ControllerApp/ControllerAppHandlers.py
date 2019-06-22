@@ -1,9 +1,9 @@
 from ControllerAppSender import ControllerAppSender
 from ControllerAppQueue import ControllerAppQueue
-from ControllerAppAmazon import ControllerAppAmazon
 from controller.NodeController import NodeController
 from ControllerAppConstants import CONTROLLER_QUEUE, FRONTEND_QUEUE, SERVER_IP
 from colorama import Fore, Style
+import os
 
 
 
@@ -12,7 +12,6 @@ class ControllerAppHandlers(object):
         self.sender = sender
         self.queue = queue
         self.node_controller = NodeController()
-        self.amazon = ControllerAppAmazon()
 
     def get_all_nodes(self, args: dict):
         '''
@@ -73,7 +72,7 @@ class ControllerAppHandlers(object):
             # Cria o registro do nó no banco de dados
             self.node_controller.create_node(node_name, processing_time)
             # TODO - mandar msg pro front subir o container
-            # os.popen(f'start "cmd" "C:\\Users\\vinic\\Desktop\\TrabFinalSD\\ServerApp\\ServerAppInitialize.py" "{node_name}" "{processing_time}"')
+            os.popen(f'start "cmd" "C:\\Users\\vinic\\Desktop\\TrabFinalSD\\ServerApp\\ServerAppInitialize.py" "{node_name}" "{processing_time}"')
         else:
             print(f'{Fore.RED}Node {node_name} already exist.')
 
@@ -114,7 +113,7 @@ class ControllerAppHandlers(object):
             processing_time = node['processing_time']
             connections = node['connections']
             # TODO - mandar msg pro front subir o container
-            # os.popen(f'start "cmd" "C:\\Users\\vinic\\Desktop\\TrabFinalSD\\ServerApp\\ServerAppInitialize.py" "{node_name}" "{processing_time}"')
+            os.popen(f'start "cmd" "C:\\Users\\vinic\\Desktop\\TrabFinalSD\\ServerApp\\ServerAppInitialize.py" "{node_name}" "{processing_time}"')
             for connection in connections:
                 self.sender.send_message_to(
                     to=node_name, 

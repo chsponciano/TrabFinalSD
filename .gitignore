@@ -62,6 +62,10 @@ typings/
 
 # Python
 ServerApp/__pycache__
+ControllerApp/__pycache__
+ControllerApp/controller/__pycache__
+ControllerApp/dao/__pycache__
 
 # Visual Studio Code
 ServerApp/.vscode/
+ControllerApp/.vscode/
