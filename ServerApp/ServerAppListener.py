@@ -7,19 +7,20 @@ from json import loads
 from ast import literal_eval
 import ServerAppQueue
 
- 
-class ServerAppListener(object): 
+
+class ServerAppListener(object):
     def __init__(self, queue: ServerAppQueue, sender: ServerAppSender, mapper: ServerAppMapper):
-        self.queue      = queue
-        self.handlers   = ServerAppHandlers(sender, self.queue, mapper)
+        self.queue = queue
+        self.handlers = ServerAppHandlers(sender, self.queue, mapper)
         self.queue_name = self.queue.get_queue_name()
-        self.set_message_handler_mapper(self.get_default_message_handler_mapper())
+        self.set_message_handler_mapper(
+            self.get_default_message_handler_mapper())
         self.queue.get_channel().basic_consume(
-            queue=self.queue_name, 
-            on_message_callback=self.callback_method, 
+            queue=self.queue_name,
+            on_message_callback=self.callback_method,
             auto_ack=True
         )
-    
+
     def callback_method(self, ch, method, properties, body):
         try:
             message = self.binary_to_dict(body)
@@ -29,7 +30,7 @@ class ServerAppListener(object):
             self.handle_message(message)
         except Exception as e:
             print(f'Cannot handle message. {message} {e}')
-    
+
     def handle_message(self, message: dict):
         mapper = self.get_message_handler_mapper()
         if message['message'] in mapper:
@@ -42,11 +43,11 @@ class ServerAppListener(object):
 
     def start_listening(self):
         self.queue.get_channel().start_consuming()
-    
+
     def start_listening_async(self):
         thread = Thread(target=self.start_listening)
         thread.start()
-    
+
     def stop_listening(self):
         self.queue.get_channel().stop_consuming()
 

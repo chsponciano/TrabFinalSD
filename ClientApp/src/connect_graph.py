@@ -2,14 +2,9 @@ from pika import BlockingConnection, ConnectionParameters
 from json import dumps
 import sys
 
-
-# Recebe as conexão a serem feitas em par
-# q1 q2 q1 q3 
-# Foramará um grafo onde q1 conhece q2 e q3, porém q2 não conhece q3
-
 args = sys.argv[1:]
 
-connection = BlockingConnection(ConnectionParameters('localhost'))
+connection = BlockingConnection(ConnectionParameters('18.191.149.251'))
 channel = connection.channel()
 
 q1 = None

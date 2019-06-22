@@ -10,7 +10,7 @@ class ServerAppHandlers(object):
         self.mapper = mapper
         self.sender = sender
         self.queue = queue
-    
+
     def connect_to(self, args: dict):
         '''
         Se conecta com o nó requisitado
@@ -18,7 +18,8 @@ class ServerAppHandlers(object):
         '''
         node = args['node']
         self.mapper.connect_to(node)
-        print(f'Connection between nodes {self.queue.get_queue_name()} and {node} has been established.')
+        print(
+            f'Connection between nodes {self.queue.get_queue_name()} and {node} has been established.')
 
     def ping_everyone(self, args: dict):
         '''
@@ -67,8 +68,8 @@ class ServerAppHandlers(object):
                         }
                     }, connection)
         else:
-            print(f'Dijkstra cannot continue {args} {self.mapper.get_queue_mapper()}')
-    
+            print(
+                f'Dijkstra cannot continue {args} {self.mapper.get_queue_mapper()}')
 
     def start_dijkstra(self, args: dict):
         '''
