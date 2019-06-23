@@ -1,12 +1,17 @@
+docker run -d -v /data/:/var/lib/mysql --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=admin -e MYSQL_DATABASE=trab_final_sd centurylink/mysql
+------------------------------------------------------------
 sudo FLASK_APP=index.py flask run --host=0.0.0.0 --port=80 (./start_flask.sh)
 ------------------------------------------------------------
-docker build -t chsponciano/noderabbit . 
+docker build -t chsponciano/noderabbit .
+docker build -t chsponciano/controller . 
 docker network create --driver bridge graph-network
 docker run -d --name rabbit --network graph-network --hostname rabbit -p 15672:15672 -p 5672:5672 rabbitmq:3.7.15-management
-docker run -d --network graph-network chsponciano/noderabbit python ServerAppInitialize.py q6
+docker run -d --name controller --network graph-network --hostname controller chsponciano/controller
+docker run -d --network graph-network chsponciano/noderabbit python ServerAppInitialize.py q6 10
 -------------------------------------------------------------
 python ./connect_graph.py q3 q1 q3
 python ./start_algorithm.py q1 start_dijkstra target_node q5
 -------------------------------------------------------------
-18.191.149.251 -> Front
-18.191.149.251:15672 -> Rabbit-Server(User: guest | password: guest)
+18.191.149.251 			-> Front
+18.191.149.251:15672 	-> Rabbit-Server(User: guest | password: guest)
+18.191.149.251:3306 	-> Mysql(User: root | password: admin)

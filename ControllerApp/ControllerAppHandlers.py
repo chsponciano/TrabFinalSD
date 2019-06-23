@@ -1,8 +1,8 @@
 from ControllerAppSender import ControllerAppSender
 from ControllerAppQueue import ControllerAppQueue
 from ControllerAppTaskScheduler import ControllerAppTaskScheduler
-from controller.NodeController import NodeController
-from ControllerAppConstants import CONTROLLER_QUEUE, FRONTEND_QUEUE, SERVER_IP
+from NodeController import NodeController
+from ControllerAppConstants import CONTROLLER_QUEUE, FRONTEND_QUEUE, RABBIT_HOST
 from colorama import Fore, Style
 import os
 

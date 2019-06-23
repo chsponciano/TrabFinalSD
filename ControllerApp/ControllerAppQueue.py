@@ -4,7 +4,7 @@ from ControllerAppConstants import *
 
 class ControllerAppQueue(object):
     def __init__(self):
-        self.connection = BlockingConnection(ConnectionParameters(SERVER_IP))
+        self.connection = BlockingConnection(ConnectionParameters(RABBIT_HOST))
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=CONTROLLER_QUEUE)
 

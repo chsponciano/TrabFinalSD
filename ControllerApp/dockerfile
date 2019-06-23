@@ -1,0 +1,7 @@
+FROM python:3.6.8
+COPY . /app
+WORKDIR /app
+RUN pip install pika
+RUN pip install colorama
+RUN pip install mysqlclient
+CMD python ControllerAppInitialize.py
