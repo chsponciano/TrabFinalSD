@@ -1,4 +1,4 @@
-from dao.NodeDAO import NodeDAO
+from NodeDAO import NodeDAO
 
 
 class NodeController(object):

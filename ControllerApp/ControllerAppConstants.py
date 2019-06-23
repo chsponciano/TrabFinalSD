@@ -1,9 +1,10 @@
-SERVER_IP = 'localhost'
+RABBIT_HOST = 'rabbit'
+DB_HOST = 'mysql'
 FRONTEND_QUEUE = 'frontend-queue'
 CONTROLLER_QUEUE = 'controller-queue'
 CONTROLLER_QUEUE = 'controller-queue'
 DB_USER = 'root'
-DB_PASS = ''
+DB_PASS = 'admin'
 DB_NAME = 'trab_final_sd'
 HEALTHCHECK_INTERVAL = 5
 SUPPRESS_LOG_LISTENER = ['healthcheck', 'ping_healthcheck']
