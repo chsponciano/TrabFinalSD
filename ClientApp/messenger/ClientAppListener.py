@@ -1,18 +1,17 @@
 from pika import BlockingConnection, ConnectionParameters
-from ServerAppHandlers import ServerAppHandlers
-from ServerAppSender import ServerAppSender
-from ServerAppMapper import ServerAppMapper
-from ServerAppConstants import SUPPRESS_LOG_LISTENER
+from ClientAppHandlers import ClientAppHandlers
+from ClientAppSender import ClientAppSender
+from ClientAppConstants import SUPPRESS_LOG_LISTENER
 from threading import Thread
 from json import loads
 from ast import literal_eval
-import ServerAppQueue
+import ClientAppQueue
 
 
-class ServerAppListener(object):
-    def __init__(self, queue: ServerAppQueue, sender: ServerAppSender, mapper: ServerAppMapper):
+class ClientAppListener(object):
+    def __init__(self, queue: ClientAppQueue, sender: ClientAppSender):
         self.queue = queue
-        self.handlers = ServerAppHandlers(sender, self.queue, mapper, self)
+        self.handlers = ClientAppHandlers(sender, self.queue, self)
         self.queue_name = self.queue.get_queue_name()
         self.set_message_handler_mapper(self.get_default_message_handler_mapper())
         self.queue.get_channel().basic_consume(
@@ -60,12 +59,8 @@ class ServerAppListener(object):
 
     def get_default_message_handler_mapper(self):
         return {
-            'connect_to': self.handlers.connect_to,
-            'ping_everyone': self.handlers.ping_everyone,
-            'ping': self.handlers.ping,
-            'dijkstra': self.handlers.dijkstra,
-            'start_dijkstra': self.handlers.start_dijkstra,
-            'healthcheck': self.handlers.healthcheck,
-            'delete_connection': self.handlers.delete_connection,
-            'kill': self.handlers.kill
+            'receive_all_nodes': self.handlers.receive_all_nodes,
+            'every_node_callback_message_dijkstra': self.handlers.every_node_callback_message_dijkstra,
+            'callback_message_dijkstra': self.handlers.callback_message_dijkstra,
+            'create_node': self.handlers.create_node,
         }

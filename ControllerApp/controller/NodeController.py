@@ -15,7 +15,7 @@ class NodeController(object):
         return self.dao.find_all_node_name_and_processing_time_and_connections()
 
     def create_node(self, node_name, processing_time):
-        self.dao.create(node_name, processing_time, False)
+        self.dao.create(node_name, processing_time, True)
 
     def exists(self, node_name):
         return self.dao.exists_by_node_name(node_name)
@@ -29,7 +29,7 @@ class NodeController(object):
         return self.dao.find_all_node_name_and_processing_time_and_connections_by_pinged_back(False)
 
     def reset_all_pinged_back(self):
-        node_ids = self.dao.get_all_node_ids()
+        node_ids = self.dao.find_all_node_ids()
         for node_id in node_ids:
             self.dao.set_pinged_back(node_id, False)
 
@@ -38,4 +38,19 @@ class NodeController(object):
     
     def set_pinged_back(self, node_name, value):
         self.dao.set_pinged_back_by_node_name(node_name, value)
+
+    def delete_connection(self, node1, node2):
+        node_id_1 = self.dao.find_id_by_node_name(node1)
+        node_id_2 = self.dao.find_id_by_node_name(node2)
+        self.dao.delete_connection(node_id_1, node_id_2)
+
+    def delete_node(self, node_name):
+        connections = self.get_all_connections(node_name)
+        for connection in connections:
+            self.delete_connection(node_name, connection)
+            self.delete_connection(connection, node_name)
+        self.dao.delete_by_node_name(node_name)
+    
+    def get_all_connections(self, node_name):
+        return self.dao.find_all_connections(self.dao.find_id_by_node_name(node_name))
 

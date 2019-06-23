@@ -9,15 +9,6 @@ import sys
 
 init()
 
-queue = ControllerAppQueue()
-sender = ControllerAppSender(queue)
-listener = ControllerAppListener(queue, sender)
-
-listener.start_listening_async()
-
-print(f'Controller app initialized.')
-
-
 tasks = [
     {
         'interval': HEALTHCHECK_INTERVAL,
@@ -25,4 +16,12 @@ tasks = [
     }
 ]
 
+queue = ControllerAppQueue()
+sender = ControllerAppSender(queue)
 task_scheduler = ControllerAppTaskScheduler(sender, tasks)
+listener = ControllerAppListener(queue, sender, task_scheduler)
+
+listener.start_listening_async()
+task_scheduler.start()
+
+print(f'Controller app initialized.')

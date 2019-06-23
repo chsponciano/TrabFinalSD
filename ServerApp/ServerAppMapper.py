@@ -23,3 +23,8 @@ class ServerAppMapper(object):
 
     def add_to_queue_mapper(self, node: str,  properties: dict):
         self.queue_mapper[node] = properties
+
+    def remove_connection(self, node: str):
+        del self.queue_mapper[node]
+        if node in self.connected_queues:
+            self.connected_queues.remove(node)

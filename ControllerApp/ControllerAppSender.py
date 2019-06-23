@@ -1,4 +1,5 @@
 from json import dumps
+from ControllerAppConstants import SUPPRESS_LOG_SENDER
 
 
 class ControllerAppSender(object):
@@ -7,8 +8,9 @@ class ControllerAppSender(object):
 
     def send_message_to(self, message, to: str):
         message = self.prepare_message(message)
-        print(f'Sending {message} to {to}')
-        self.queue.get_channel().basic_publish(exchange='', routing_key=to, body=message)
+        if not message['message'] in SUPPRESS_LOG_SENDER:
+            print(f'Sending {message} to {to}')
+        self.queue.get_channel().basic_publish(exchange='', routing_key=to, body=dumps(message))
 
     def prepare_message(self, message):
         if isinstance(message, dict):
@@ -16,10 +18,9 @@ class ControllerAppSender(object):
                 raise Exception()
             if not 'args' in message:
                 message['args'] = {}
-            message = dumps(message)
-
+            message = message
         elif isinstance(message, str):
-            message = dumps({'message': message, 'args': {}})
+            message = {'message': message, 'args': {}}
         else:
             raise Exception()
         return message

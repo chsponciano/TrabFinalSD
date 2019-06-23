@@ -23,18 +23,29 @@ get_all_nodes = {
 }
 
 create_node = {
-    'node_name': 'q1',
-    'processing_time': '1'
+    'node_name': 'q6',
+    'processing_time': '3'
 }
 
 connect_nodes = {
-    'node1': 'q2',
-    'node2': 'q1'
+    'node1': 'q4',
+    'node2': 'q6'
+}
+
+delete_node = {
+    'node': 'q6'
+}
+
+delete_connection = {
+    'node1': 'q6',
+    'node2': 'q4'
 }
 
 message = {
-    'message': 'healthcheck',
-    'args': {}
+    'message': 'kill',
+    'args': {
+        'kill_all': '1'
+    }
 }
 
 channel.basic_publish(exchange='', routing_key='controller-queue', body=dumps(message))

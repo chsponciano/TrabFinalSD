@@ -6,10 +6,11 @@ from colorama import Fore, Style
 
 
 class ServerAppHandlers(object):
-    def __init__(self, sender: ServerAppSender, queue: ServerAppQueue, mapper: ServerAppMapper):
+    def __init__(self, sender: ServerAppSender, queue: ServerAppQueue, mapper: ServerAppMapper, listener):
         self.mapper = mapper
         self.sender = sender
         self.queue = queue
+        self.listener = listener
 
     def connect_to(self, args: dict):
         '''
@@ -102,14 +103,11 @@ class ServerAppHandlers(object):
             'callback_queue': args['callback_queue']
         })
 
-    def dijkstra_done(self, args: dict):
-        '''
-        Handler para a mensagem enviada indicando o fim do algoritmo
-        Nesse caso é um handler placeholder, já que na impl final esse handler deverá estar no app frontend
-        '''
-        print(f'dijkstra_done: {args}')
-
     def healthcheck(self, args: dict):
+        '''
+        Toda vez que essa mensagem é chamada, o vértice manda uma mensagem para o controller
+        com o intuito de avisar o controller que ainda está rodando
+        '''
         self.sender.send_message_to(
             to=CONTROLLER_QUEUE,
             message={
@@ -119,3 +117,19 @@ class ServerAppHandlers(object):
                 }
             }
         )
+
+    def delete_connection(self, args: dict):
+        '''
+        Remove uma conexão da lista de conexões desse vértice
+        '''
+        connection = args['connection']
+        self.mapper.remove_connection(connection)
+        print(f'The connection between {self.queue.get_queue_name()} and {connection} has been undone.')
+    
+    def kill(self, args: dict):
+        '''
+        Derruba essa instância
+        '''
+        print(f'This node is shutting down.')
+        self.listener.stop_listening()
+        self.queue.close_connection()

@@ -1,5 +1,6 @@
 from ControllerAppSender import ControllerAppSender
 from ControllerAppQueue import ControllerAppQueue
+from ControllerAppTaskScheduler import ControllerAppTaskScheduler
 from controller.NodeController import NodeController
 from ControllerAppConstants import CONTROLLER_QUEUE, FRONTEND_QUEUE, SERVER_IP
 from colorama import Fore, Style
@@ -8,9 +9,11 @@ import os
 
 
 class ControllerAppHandlers(object):
-    def __init__(self, sender: ControllerAppSender, queue: ControllerAppQueue):
+    def __init__(self, sender: ControllerAppSender, queue: ControllerAppQueue, task_scheduler: ControllerAppTaskScheduler, listener):
         self.sender = sender
         self.queue = queue
+        self.listener = listener
+        self.task_scheduler = task_scheduler
         self.node_controller = NodeController()
 
     def get_all_nodes(self, args: dict):
@@ -71,8 +74,17 @@ class ControllerAppHandlers(object):
         if not self.node_controller.exists(node_name):
             # Cria o registro do nó no banco de dados
             self.node_controller.create_node(node_name, processing_time)
-            # TODO - mandar msg pro front subir o container
-            os.popen(f'start "cmd" "C:\\Users\\vinic\\Desktop\\TrabFinalSD\\ServerApp\\ServerAppInitialize.py" "{node_name}" "{processing_time}"')
+            self.sender.send_message_to(
+                to=FRONTEND_QUEUE,
+                message={
+                    'message': 'create_node',
+                    'args': {
+                        'node_name': node_name,
+                        'processing_time': processing_time
+                    }
+                }
+            )
+            # os.popen(f'start "cmd" "C:\\Users\\vinic\\Desktop\\TrabFinalSD\\ServerApp\\ServerAppInitialize.py" "{node_name}" "{processing_time}"')
         else:
             print(f'{Fore.RED}Node {node_name} already exist.')
 
@@ -112,8 +124,17 @@ class ControllerAppHandlers(object):
             node_name = node['node_name']
             processing_time = node['processing_time']
             connections = node['connections']
-            # TODO - mandar msg pro front subir o container
-            os.popen(f'start "cmd" "C:\\Users\\vinic\\Desktop\\TrabFinalSD\\ServerApp\\ServerAppInitialize.py" "{node_name}" "{processing_time}"')
+            self.sender.send_message_to(
+                to=FRONTEND_QUEUE,
+                message={
+                    'message': 'create_node',
+                    'args': {
+                        'node_name': node_name,
+                        'processing_time': processing_time
+                    }
+                }
+            )
+            # os.popen(f'start "cmd" "C:\\Users\\vinic\\Desktop\\TrabFinalSD\\ServerApp\\ServerAppInitialize.py" "{node_name}" "{processing_time}"')
             for connection in connections:
                 self.sender.send_message_to(
                     to=node_name, 
@@ -132,3 +153,55 @@ class ControllerAppHandlers(object):
 
     def ping_healthcheck(self, args: dict):
         self.node_controller.set_pinged_back(args['node'], True)
+
+    def delete_connection(self, args: dict):
+        node1 = args['node1']
+        node2 = args['node2']
+        self.node_controller.delete_connection(node1, node2)
+        self.node_controller.delete_connection(node2, node1)
+        self.sender.send_message_to(
+            to=node1,
+            message={
+                'message': 'delete_connection',
+                'args': {
+                    'connection': node2
+                }
+            }
+        )
+        self.sender.send_message_to(
+            to=node2,
+            message={
+                'message': 'delete_connection',
+                'args': {
+                    'connection': node1
+                }
+            }
+        )
+
+    def delete_node(self, args: dict):
+        node = args['node']
+        connections = self.node_controller.get_all_connections(node)
+        self.node_controller.delete_node(node)
+        for connection in connections:
+            self.sender.send_message_to(
+                to=connection,
+                message={
+                    'message': 'delete_connection',
+                    'args': {
+                        'connection': node
+                    }
+                }
+            )
+        self.sender.send_message_to(to=node, message='kill')
+
+    def kill(self, args: dict):
+        print(f'This controller is shutting down.')
+        if 'kill_all' in args and args['kill_all'] != 0:
+            all_nodes = self.node_controller.get_all_node_names()
+            for node in all_nodes:
+                print(f'Shutting down node {node}.')
+                self.sender.send_message_to(to=node, message='kill')
+        self.task_scheduler.shut_down()
+        self.listener.stop_listening()
+        self.queue.close_connection()
+

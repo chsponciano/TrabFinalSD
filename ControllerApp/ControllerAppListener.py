@@ -1,6 +1,7 @@
 from ControllerAppHandlers import ControllerAppHandlers
 from ControllerAppSender import ControllerAppSender
-from ControllerAppConstants import CONTROLLER_QUEUE
+from ControllerAppTaskScheduler import ControllerAppTaskScheduler
+from ControllerAppConstants import CONTROLLER_QUEUE, SUPPRESS_LOG_LISTENER
 from pika import BlockingConnection, ConnectionParameters
 from threading import Thread
 from json import loads
@@ -9,9 +10,9 @@ import ControllerAppQueue
 
 
 class ControllerAppListener(object):
-    def __init__(self, queue: ControllerAppQueue, sender: ControllerAppSender):
+    def __init__(self, queue: ControllerAppQueue, sender: ControllerAppSender, task_scheduler: ControllerAppTaskScheduler):
         self.queue = queue
-        self.handlers = ControllerAppHandlers(sender, self.queue)
+        self.handlers = ControllerAppHandlers(sender, self.queue, task_scheduler, self)
         self.set_message_handler_mapper(self.get_default_message_handler_mapper())
         self.queue.get_channel().basic_consume(
             queue=CONTROLLER_QUEUE,
@@ -24,7 +25,8 @@ class ControllerAppListener(object):
             message = self.binary_to_dict(body)
             if not (('message' in message and 'args' in message) and (isinstance(message['message'], str) and isinstance(message['args'], dict))):
                 raise Exception()
-            print(f'Message being handled. {message}')
+            if not message['message'] in SUPPRESS_LOG_LISTENER:
+                print(f'Message being handled. {message}')
             self.handle_message(message)
         except Exception as e:
             print(f'Cannot handle message. {message} {e}')
@@ -62,5 +64,8 @@ class ControllerAppListener(object):
             'create_node': self.handlers.create_node,
             'connect_nodes': self.handlers.connect_nodes,
             'healthcheck': self.handlers.healthcheck,
-            'ping_healthcheck': self.handlers.ping_healthcheck
+            'ping_healthcheck': self.handlers.ping_healthcheck,
+            'delete_connection': self.handlers.delete_connection,
+            'delete_node': self.handlers.delete_node,
+            'kill': self.handlers.kill
         }
