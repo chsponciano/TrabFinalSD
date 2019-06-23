@@ -28,14 +28,17 @@ from colorama import init, Fore
 # {'message': 'delete_node', 'args': {'node': 'NODE_NAME'}}
 # {'message': 'kill', 'args': {'kill_all': 0}}  # Vc manda 0 pra false e qualquer outro numero pra true # kill_all mata todas as aplicações dos vértices
 
-init()
+class ClientAppInitialize(object):
+    def __init__(self):
+        init()
 
-# As classes instanciadas abaixo devem ser instancias somente uma vez durante a aplicação
+        # As classes instanciadas abaixo devem ser instancias somente uma vez durante a aplicação
 
-queue = ClientAppQueue()
-sender = ClientAppSender(queue)
-listener = ClientAppListener(queue, sender)
+        self.queue = ClientAppQueue()
+        self.sender = ClientAppSender(self.queue)
+        self.listener = ClientAppListener(self.queue, self.sender)
 
-listener.start_listening_async()
+        # começa a escutar as mensagens
+        self.listener.start_listening_async()
 
-print(f'{FRONTEND_QUEUE} initialized.')
+        print(f'{FRONTEND_QUEUE} initialized.')

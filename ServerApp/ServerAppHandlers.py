@@ -41,7 +41,7 @@ class ServerAppHandlers(object):
         target_node = args['target_node']
         visited_nodes = args['visited_nodes']
         every_node_callback_message = args['every_node_callback_message']
-        callback_message = args['callback_message']
+        end_algorithm_callback_message = args['end_algorithm_callback_message']
         callback_queue = args['callback_queue']
 
         queue_mapper = self.mapper.get_queue_mapper()
@@ -58,7 +58,7 @@ class ServerAppHandlers(object):
         if target_node == self.queue.get_queue_name():
             # TODO - ping_dijkstra done no controller
             self.sender.send_message_to({
-                'message': callback_message,
+                'message': end_algorithm_callback_message,
                 'args': {
                     'visited_nodes': visited_nodes,
                     'total_dist': source_dist
@@ -78,7 +78,7 @@ class ServerAppHandlers(object):
                             'visited_nodes': visited_nodes,
                             'target_node': target_node,
                             'every_node_callback_message': every_node_callback_message,
-                            'callback_message': callback_message,
+                            'end_algorithm_callback_message': end_algorithm_callback_message,
                             'callback_queue': callback_queue
                         }
                     }, connection)
@@ -99,7 +99,7 @@ class ServerAppHandlers(object):
             'visited_nodes': [],
             'target_node': target_node,
             'every_node_callback_message': args['every_node_callback_message'],
-            'callback_message': args['callback_message'],
+            'end_algorithm_callback_message': args['end_algorithm_callback_message'],
             'callback_queue': args['callback_queue']
         })
 

@@ -60,7 +60,11 @@ class ClientAppListener(object):
     def get_default_message_handler_mapper(self):
         return {
             'receive_all_nodes': self.handlers.receive_all_nodes,
-            'every_node_callback_message_dijkstra': self.handlers.every_node_callback_message_dijkstra,
-            'callback_message_dijkstra': self.handlers.callback_message_dijkstra,
+            'every_node_callback_message': self.handlers.every_node_callback_message,
+            'end_algorithm_callback_message': self.handlers.end_algorithm_callback_message,
             'create_node': self.handlers.create_node,
+            'create_connection': self.handlers.create_connection,
+            'delete_node': self.handlers.delete_node,
+            'delete_connection': self.handlers.delete_connection,
+            'calc_route': self.handlers.calc_route
         }

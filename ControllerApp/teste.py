@@ -10,9 +10,10 @@ callback_queue = 'teste-controller'
 callback_message = 'teste-message'
 calc_route = {
     'start_node': 'q1',
-    'target_node': 'q2',
+    'target_node': 'q4',
     'algorithm': 'dijkstra',
     'every_node_callback_message': callback_message,
+    'end_algorithm_callback_message': callback_message,
     'callback_message': callback_message,
     'callback_queue': callback_queue
 }
@@ -24,28 +25,34 @@ get_all_nodes = {
 
 create_node = {
     'node_name': 'q6',
-    'processing_time': '3'
+    'processing_time': '3',
+    'callback_queue': callback_queue,
+    'callback_message': callback_message
 }
 
-connect_nodes = {
+create_connection = {
     'node1': 'q4',
-    'node2': 'q6'
+    'node2': 'q3',
+    'callback_queue': callback_queue,
+    'callback_message': callback_message
 }
 
 delete_node = {
-    'node': 'q6'
+    'node': 'q5',
+    'callback_queue': callback_queue,
+    'callback_message': callback_message
 }
 
 delete_connection = {
-    'node1': 'q6',
-    'node2': 'q4'
+    'node1': 'q4',
+    'node2': 'q',
+    'callback_queue': callback_queue,
+    'callback_message': callback_message
 }
 
 message = {
-    'message': 'kill',
-    'args': {
-        'kill_all': '1'
-    }
+    'message': 'calc_route',
+    'args': calc_route
 }
 
 channel.basic_publish(exchange='', routing_key='controller-queue', body=dumps(message))

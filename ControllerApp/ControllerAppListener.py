@@ -62,10 +62,10 @@ class ControllerAppListener(object):
             'get_all_nodes': self.handlers.get_all_nodes,
             'calc_route': self.handlers.calc_route,
             'create_node': self.handlers.create_node,
-            'connect_nodes': self.handlers.connect_nodes,
+            'delete_node': self.handlers.delete_node,
+            'create_connection': self.handlers.create_connection,
+            'delete_connection': self.handlers.delete_connection,
+            'kill': self.handlers.kill,
             'healthcheck': self.handlers.healthcheck,
             'ping_healthcheck': self.handlers.ping_healthcheck,
-            'delete_connection': self.handlers.delete_connection,
-            'delete_node': self.handlers.delete_node,
-            'kill': self.handlers.kill
         }
