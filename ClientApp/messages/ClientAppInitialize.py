@@ -29,14 +29,14 @@ from colorama import init, Fore
 # {'message': 'kill', 'args': {'kill_all': 0}}  # Vc manda 0 pra false e qualquer outro numero pra true # kill_all mata todas as aplicações dos vértices
 
 class ClientAppInitialize(object):
-    def __init__(self):
+    def __init__(self, websocket):
         init()
 
         # As classes instanciadas abaixo devem ser instancias somente uma vez durante a aplicação
 
         self.queue = ClientAppQueue()
         self.sender = ClientAppSender(self.queue)
-        self.listener = ClientAppListener(self.queue, self.sender)
+        self.listener = ClientAppListener(self.queue, self.sender, websocket)
 
         # começa a escutar as mensagens
         self.listener.start_listening_async()

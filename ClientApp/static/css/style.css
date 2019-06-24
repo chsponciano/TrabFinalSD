@@ -87,7 +87,8 @@ section .control-area {
 }
 
 #instServidor,
-#msgServidor {
+#msgServidor,
+#msgConexao {
     padding: 10px;
 }
 

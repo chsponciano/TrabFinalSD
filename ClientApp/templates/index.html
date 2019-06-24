@@ -62,20 +62,7 @@
         <section class="col-sm-9 graph-area" id="graph-container"></section>
         <section class="col-sm-3 control-area">
             <div class="control-area-ttl">Lista de Servidores</div>
-            <div class="control-area-list">
-                {% for i in range(1, 10) %}
-                <article>
-                    <div class="row">
-                        <div class="col-sm-8 ds-node">
-                            <div>Node {{i}}<br>{{i * 10}}ms</div>
-                        </div>
-                        <div class="col-sm-4 control-area-list-chk">
-                            <input type="checkbox" checked data-toggle="toggle" data-style="ios">
-                        </div>
-                    </div>
-                </article>
-                {% endfor %}
-            </div>
+            <div class="control-area-list" id="control-area-list"></div>
             <div>
                 <div class="control-area-ttl" data-toggle="collapse" data-target="#instServidor" style="cursor: pointer;">Instanciar Servidor</div>
                 <div id="instServidor" class="collapse">
@@ -83,15 +70,31 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text" id="basic-addon1">ID</span>
                         </div>
-                        <input type="text" class="form-control" placeholder="Identificação" aria-label="id" aria-describedby="basic-addon1">
+                        <input type="text" class="form-control id_node" placeholder="Identificação" aria-label="id" aria-describedby="basic-addon1">
                     </div>
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text" id="basic-addon1">MS</span>
                         </div>
-                        <input type="number" class="form-control" placeholder="Tempo de execução" aria-label="Tempo" aria-describedby="basic-addon1">
+                        <input type="number" class="form-control ms_node" placeholder="Tempo de execução" aria-label="Tempo" aria-describedby="basic-addon1">
                     </div>
-                    <button type="button" class="btn btn-primary">Instanciar</button>
+                    <button type="button" class="btn btn-primary" onclick="send_create_node()">Instanciar</button>
+                </div>
+                <div class="control-area-ttl" data-toggle="collapse" data-target="#msgConexao" style="cursor: pointer;">Criar Conexão</div>
+                <div id="msgConexao" class="collapse">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text">Origem</label>
+                        </div>
+                        <select class="custom-select custom-select-node" id="cc_origem"></select>
+                    </div>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text">Destino</label>
+                        </div>
+                        <select class="custom-select custom-select-node" id="cc_destino"></select>
+                    </div>
+                    <button type="button" class="btn btn-primary">Criar Conexão</button>
                 </div>
                 <div class="control-area-ttl" data-toggle="collapse" data-target="#msgServidor" style="cursor: pointer;">Calcular Distancia</div>
                 <div id="msgServidor" class="collapse">
@@ -99,33 +102,22 @@
                         <div class="input-group-prepend">
                             <label class="input-group-text">Origem</label>
                         </div>
-                        <select class="custom-select">
-                                <option selected></option>
-                                <option value="1">Node 1</option>
-                                <option value="1">Node 2</option>
-                                <option value="1">Node 3</option>
-                            </select>
+                        <select class="custom-select custom-select-node" id="cr_origem"></select>
                     </div>
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <label class="input-group-text">Destino</label>
                         </div>
-                        <select class="custom-select">
-                                <option selected></option>
-                                <option value="1">Node 1</option>
-                                <option value="1">Node 2</option>
-                                <option value="1">Node 3</option>
-                            </select>
+                        <select class="custom-select custom-select-node" id="cr_destino"></select>
                     </div>
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <label class="input-group-text">Algoritmos</label>
                         </div>
-                        <select class="custom-select">
+                        <select class="custom-select" id="cr_algoritmo">
                                 <option selected></option>
                                 <option value="1">Dijsktra</option>
                                 <option value="2">Vizinho</option>
-                                <option value="3">Carteiro</option>
                             </select>
                     </div>
                     <button type="button" class="btn btn-primary">Calcular</button>
@@ -142,7 +134,229 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-    <script src="../static/js/sigma.js"></script>
+    <script>
+        var ws = new WebSocket("ws://127.0.0.1:8765/");
+        var nodes = new Map();
+        var edge = new Map();
+
+        ws.onmessage = function(event) {
+            data = event.data.split("'").join("\"");
+            console.log(data)
+            var content = JSON.parse(data);
+            switch (content["message"]) {
+                case "get_all_nodes":
+                    get_all_nodes(content["args"]);
+                    break;
+                case "create_node":
+                    create_node(content["args"]);
+                    break;
+                case "delete_node":
+                    delete_node(content["args"]);
+                    break;
+                case "create_connection":
+                    create_connection(content["args"]);
+                    break;
+                case "delete_connection":
+                    delete_connection(content["args"]);
+                    break;
+                case "calc_router":
+                    calc_router(content["args"]);
+                    break;
+                case "every_node_callback_message":
+                    every_node_callback_message(content["args"]);
+                    break;
+                case "end_algorithm_callback_message":
+                    end_algorithm_callback_message(content["args"]);
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        class Node {
+            constructor(node_name, processing_time) {
+                this.node_name = node_name;
+                this.processing_time = processing_time;
+            }
+        }
+
+        class Edge {
+            constructor(edge_name, source, target) {
+                this.edge_name = edge_name;
+                this.source = source;
+                this.target = target;
+            }
+        }
+
+        function refresh_screen() {
+            var g = {
+                nodes: [],
+                edges: []
+            };
+
+            for (var [key, value] of nodes) {
+                g.nodes.push({
+                    id: key,
+                    label: key,
+                    x: Math.random(),
+                    y: Math.random(),
+                    size: 10,
+                    color: '#007bff'
+                });
+            }
+
+            for (var [key, value] of edge) {
+                g.edges.push({
+                    id: value.edge_name,
+                    source: value.source,
+                    target: value.target,
+                    size: 10,
+                    color: '#CCC'
+                });
+            }
+
+            s = new sigma({
+                graph: g,
+                container: 'graph-container'
+            });
+
+            list_server();
+
+        }
+
+        function list_server() {
+            $('#control-area-list').html('');
+            $('.custom-select-node').html("<option selected></option>");
+            for (var [key, value] of nodes) {
+                $('#control-area-list').append('<article onclick="status_server(this)"><div class="row"><div class="col-sm-8 ds-node"><div id="content">' + key + '<br>' + value.processing_time +
+                    'ms</div></div><div class="col-sm-4 control-area-list-chk"><input type="checkbox" checked data-toggle="toggle" data-style="ios"></div></div></article>');
+                $('.custom-select-node').append("<option value='" + key + "'>" + key + "</option>");
+            }
+        }
+
+        var get_all_nodes = function(args) {
+            console.log(args);
+        }
+
+        var create_node = function(args) {
+            if (!nodes.has(args.node_name)) {
+                nodes.set(args.node_name, args.processing_time)
+            }
+            refresh_screen();
+        }
+
+        var delete_node = function(args) {
+            if (nodes.has(args.node_name)) {
+                nodes.delete(args.node_name)
+            }
+            refresh_screen();
+        }
+
+        var create_connection = function(args) {
+            console.log(args);
+            refresh_screen();
+        }
+
+        var delete_connection = function(args) {
+            console.log(args);
+            refresh_screen();
+        }
+
+        var calc_router = function(args) {
+            console.log(args);
+            refresh_screen();
+        }
+
+        var end_algorithm_callback_message = function(args) {
+            console.log(args);
+        }
+
+        var every_node_callback_message = function(args) {
+            console.log(args);
+        }
+
+        function send_message(message) {
+            ws.send(message);
+        }
+
+        function send_get_all_node() {
+            send_message('{"message": "get_all_nodes", "args": {"callback_queue": "frontend-queue", "callback_message": "get_all_nodes"}}');
+        }
+
+        function send_create_node() {
+            idx = $('.id_node').val();
+            cust = $('.ms_node').val();
+            send_message('{"message": "create_node", "args": {"callback_queue": "frontend-queue", "callback_message": "create_node", "node_name": "' + String(idx) + '", "processing_time": "' + String(cust) + '"}}');
+        }
+
+        function send_create_node(idx, cust) {
+            send_message('{"message": "create_node", "args": {"callback_queue": "frontend-queue", "callback_message": "create_node", "node_name": "' + String(idx) + '", "processing_time": "' + String(cust) + '"}}');
+        }
+
+        function send_delete_create(idx) {
+            send_message('{"message": "delete_node", "args": {"callback_queue": "frontend-queue", "callback_message": "delete_node", "node_name": "' + String(idx) + '"}}');
+        }
+
+        function send_create_connection() {
+            node1 = $('#cc_origem').val();
+            node2 = $('#cc_destino').val();
+            send_message('{"message": "create_connection", "args": {"callback_queue": "frontend-queue", "callback_message": "create_connection", "node1": "' + String(node1) + '", "node2": "' + String(node2) + '"}}');
+        }
+
+        function send_delete_connection(node1, node2) {
+            send_message('{"message": "delete_connection", "args": {"callback_queue": "frontend-queue", "callback_message": "delete_connection", "node1": "' + String(node1) + '", "node2": "' + String(node2) + '"}}');
+        }
+
+        function send_calc_route() {
+            node1 = $('#cr_origem').val();
+            node2 = $('#cr_destino').val();
+            algorithm = $('#cr_algoritmo').val();
+            send_message('{"message": "calc_route", "args": {"callback_queue": "frontend-queue", "callback_message": "calc_route", "every_node_callback_message": "every_node_callback_message", \
+                           "end_algorithm_callback_message": "end_algorithm_callback_message, "start_node": "' + String(node1) + '", "target_node": "' + String(node2) + '", "algorithm" : "' + String(algorithm) + '"}}');
+        }
+
+        $(function() {
+            $("#graph-container").mouseenter(function() {
+                document.querySelector('#graph-container').style.cursor = 'grab';
+            });
+        });
+
+        $(function() {
+            $("#graph-container").mouseout(function() {
+                document.querySelector('#graph-container').style.cursor = 'default';
+            });
+        });
+
+        $(function() {
+            $("#graph-container").mousedown(function() {
+                document.querySelector('#graph-container').style.cursor = 'grabbing';
+            });
+        });
+
+        $(function() {
+            $("#graph-container").mouseup(function() {
+                document.querySelector('#graph-container').style.cursor = 'grab';
+            });
+        });
+
+        function status_server(e) {
+            var content = e.innerText.split("\n");
+
+            if (e.classList.contains('off')) {
+                e.classList.remove('off');
+                send_create_node(content[0], content[1]);
+            } else {
+                e.classList.add("off");
+                send_delete_create(content[0]);
+            }
+        }
+
+        nodes.set("1", new Node("1", "123"));
+        nodes.set("2", new Node("2", "123"));
+        nodes.set("3", new Node("3", "123"));
+
+        refresh_screen();
+    </script>
 </body>
 
 </html>
