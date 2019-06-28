@@ -94,7 +94,8 @@
                         </div>
                         <select class="custom-select custom-select-node" id="cc_destino"></select>
                     </div>
-                    <button type="button" class="btn btn-primary">Criar Conexão</button>
+                    <button type="button" class="btn btn-primary" onclick="send_create_connection()">Conectar</button>
+                    <button type="button" class="btn btn-primary" onclick="send_delete_connection()">Desconectar</button>
                 </div>
                 <div class="control-area-ttl" data-toggle="collapse" data-target="#msgServidor" style="cursor: pointer;">Calcular Distancia</div>
                 <div id="msgServidor" class="collapse">
@@ -124,8 +125,16 @@
                 </div>
             </div>
             <footer>
-                <label>Github: </label>
-                <a href="https://github.com/chsponciano/TrabFinalSD">@TrabFinalSD</a>
+                <div style="width: 30px; float: left;">
+                    <img src='../static/images/load.gif' class="img-updating hide" style="width: 30px; cursor: pointer;" title="Atualizando tela, aguarde...">
+                    <img src='../static/images/load.png' class="img-update" style="width: 30px; cursor: pointer;" title="Clique para atualizar a tela" onclick="send_get_all_node()">
+                </div>
+                <div class="center" style="height: 26px;">
+                    <span>
+                        <a href="https://github.com/chsponciano/TrabFinalSD">@TrabFinalSD</a>
+                    </span>
+                </div>
+
             </footer>
         </section>
     </section>
@@ -137,15 +146,17 @@
     <script>
         var ws = new WebSocket("ws://127.0.0.1:8765/");
         var nodes = new Map();
-        var edge = new Map();
+        var edges = new Map();
+        var count_edge = 1;
+        var connect_init = 0;
 
         ws.onmessage = function(event) {
             data = event.data.split("'").join("\"");
-            console.log(data)
+            console.log(data);
             var content = JSON.parse(data);
             switch (content["message"]) {
                 case "get_all_nodes":
-                    get_all_nodes(content["args"]);
+                    get_all_nodes(content);
                     break;
                 case "create_node":
                     create_node(content["args"]);
@@ -188,59 +199,106 @@
             }
         }
 
-        function refresh_screen() {
-            var g = {
-                nodes: [],
-                edges: []
-            };
-
-            for (var [key, value] of nodes) {
-                g.nodes.push({
-                    id: key,
-                    label: key,
-                    x: Math.random(),
-                    y: Math.random(),
-                    size: 10,
-                    color: '#007bff'
-                });
+        function existEdge(source, target) {
+            for (var [key, value] of edges) {
+                if ((value.source == source && value.target == target) || (value.source == target && value.target == source)) {
+                    return true;
+                }
             }
 
-            for (var [key, value] of edge) {
-                g.edges.push({
-                    id: value.edge_name,
-                    source: value.source,
-                    target: value.target,
-                    size: 10,
-                    color: '#CCC'
+            return false;
+        }
+
+        async function refresh_screen() {
+            if (connect_init == 0) {
+                connect_init = 1;
+                await sleep(1000);
+                console.log('auto send_get_all_node');
+                send_get_all_node();
+            } else {
+                if (connect_init == 2) {
+                    var el;
+
+                    for (let index = 0; index < 3; index++) {
+                        el = document.getElementsByTagName('canvas')[0];
+                        el.parentNode.removeChild(el);
+                    }
+                } else {
+                    connect_init = 2;
+                }
+
+                var g = {
+                    nodes: [],
+                    edges: []
+                };
+
+                for (var [key, value] of nodes) {
+                    g.nodes.push({
+                        id: key,
+                        label: key,
+                        x: Math.random(),
+                        y: Math.random(),
+                        size: 10,
+                        color: '#007bff'
+                    });
+                }
+
+                for (var [key, value] of edges) {
+                    g.edges.push({
+                        id: value.edge_name,
+                        source: value.source,
+                        target: value.target,
+                        size: 10,
+                        color: '#CCC'
+                    });
+                }
+
+                s = new sigma({
+                    graph: g,
+                    container: 'graph-container'
                 });
+
+                list_server();
+
+                $(".img-updating").addClass('hide');
+                $(".img-update").removeClass('hide');
+
             }
-
-            s = new sigma({
-                graph: g,
-                container: 'graph-container'
-            });
-
-            list_server();
-
         }
 
         function list_server() {
             $('#control-area-list').html('');
             $('.custom-select-node').html("<option selected></option>");
             for (var [key, value] of nodes) {
-                $('#control-area-list').append('<article onclick="status_server(this)"><div class="row"><div class="col-sm-8 ds-node"><div id="content">' + key + '<br>' + value.processing_time +
-                    'ms</div></div><div class="col-sm-4 control-area-list-chk"><input type="checkbox" checked data-toggle="toggle" data-style="ios"></div></div></article>');
+                $('#control-area-list').append('<article><div class="row"><div class="col-sm-8 ds-node"><div id="content">' + key + '<br>' + value.processing_time +
+                    'ms</div></div><div class="col-sm-4 control-area-list-chk"><button type="button" class="btn btn-primary" onclick="send_delete_create(\'' + key + '\')">Excluir</button></div></div></article>');
                 $('.custom-select-node').append("<option value='" + key + "'>" + key + "</option>");
             }
+
         }
 
-        var get_all_nodes = function(args) {
-            console.log(args);
+        var get_all_nodes = function(content) {
+            nodes.clear();
+            edges.clear();
+            count_edge = 1;
+
+            for (let i = 0; i < content["args"]["nodes"].length; i++) {
+                nodes.set(content["args"]["nodes"][i]["node_name"], new Node(content["args"]["nodes"][i]["node_name"], content["args"]["nodes"][i]["processing_time"]));
+
+                for (let j = 0; j < content["args"]["nodes"][i]["connections"].length; j++) {
+                    if (!existEdge(content["args"]["nodes"][i]["node_name"], content["args"]["nodes"][i]["connections"][j])) {
+                        edges.set("e" + count_edge, new Edge("e" + count_edge, content["args"]["nodes"][i]["node_name"], content["args"]["nodes"][i]["connections"][j]));
+                        count_edge++;
+                    }
+                }
+            }
+
+            refresh_screen();
         }
 
         var create_node = function(args) {
             if (!nodes.has(args.node_name)) {
-                nodes.set(args.node_name, args.processing_time)
+                nodes.set(args.node_name, new Node(args.node_name, args.processing_time));
             }
             refresh_screen();
         }
@@ -254,11 +312,20 @@
 
         var create_connection = function(args) {
             console.log(args);
+            edges.set('e' + count_edge, new Edge('e' + count_edge, args.node1, args.node2));
+            count_edge++;
+            edges.set('e' + count_edge, new Edge('e' + count_edge, args.node1, args.node2));
+            count_edge++;
             refresh_screen();
         }
 
         var delete_connection = function(args) {
             console.log(args);
+            for (var [key, value] of edges) {
+                if ((value.source == args.node1 && value.target == args.node2) || (value.source == args.node2 && value.target == args.node1)) {
+                    edges.delete(key);
+                }
+            }
             refresh_screen();
         }
 
@@ -276,6 +343,8 @@
         }
 
         function send_message(message) {
+            $(".img-update").addClass('hide');
+            $(".img-updating").removeClass('hide');
             ws.send(message);
         }
 
@@ -286,25 +355,29 @@
         function send_create_node() {
             idx = $('.id_node').val();
             cust = $('.ms_node').val();
-            send_message('{"message": "create_node", "args": {"callback_queue": "frontend-queue", "callback_message": "create_node", "node_name": "' + String(idx) + '", "processing_time": "' + String(cust) + '"}}');
-        }
-
-        function send_create_node(idx, cust) {
-            send_message('{"message": "create_node", "args": {"callback_queue": "frontend-queue", "callback_message": "create_node", "node_name": "' + String(idx) + '", "processing_time": "' + String(cust) + '"}}');
+            send_message('{"message": "create_node", "args": {"callback_queue": "frontend-queue", "callback_message": "create_node", "node_name": "' + idx + '", "processing_time": "' + cust + '"}}');
+            $('.id_node').val('');
+            $('.ms_node').val('');
         }
 
         function send_delete_create(idx) {
-            send_message('{"message": "delete_node", "args": {"callback_queue": "frontend-queue", "callback_message": "delete_node", "node_name": "' + String(idx) + '"}}');
+            send_message('{"message": "delete_node", "args": {"callback_queue": "frontend-queue", "callback_message": "delete_node", "node_name": "' + idx + '"}}');
         }
 
         function send_create_connection() {
             node1 = $('#cc_origem').val();
             node2 = $('#cc_destino').val();
-            send_message('{"message": "create_connection", "args": {"callback_queue": "frontend-queue", "callback_message": "create_connection", "node1": "' + String(node1) + '", "node2": "' + String(node2) + '"}}');
+            send_message('{"message": "create_connection", "args": {"callback_queue": "frontend-queue", "callback_message": "create_connection", "node1": "' + node1 + '", "node2": "' + node2 + '"}}');
+            $('#cc_origem').val('');
+            $('#cc_destino').val('');
         }
 
-        function send_delete_connection(node1, node2) {
-            send_message('{"message": "delete_connection", "args": {"callback_queue": "frontend-queue", "callback_message": "delete_connection", "node1": "' + String(node1) + '", "node2": "' + String(node2) + '"}}');
+        function send_delete_connection() {
+            node1 = $('#cc_origem').val();
+            node2 = $('#cc_destino').val();
+            send_message('{"message": "delete_connection", "args": {"callback_queue": "frontend-queue", "callback_message": "delete_connection", "node1": "' + node1 + '", "node2": "' + node2 + '"}}');
+            $('#cc_origem').val('');
+            $('#cc_destino').val('');
         }
 
         function send_calc_route() {
@@ -312,7 +385,9 @@
             node2 = $('#cr_destino').val();
             algorithm = $('#cr_algoritmo').val();
             send_message('{"message": "calc_route", "args": {"callback_queue": "frontend-queue", "callback_message": "calc_route", "every_node_callback_message": "every_node_callback_message", \
-                           "end_algorithm_callback_message": "end_algorithm_callback_message, "start_node": "' + String(node1) + '", "target_node": "' + String(node2) + '", "algorithm" : "' + String(algorithm) + '"}}');
+                           "end_algorithm_callback_message": "end_algorithm_callback_message, "start_node": "' + node1 + '", "target_node": "' + node2 + '", "algorithm" : "' + algorithm + '"}}');
+            $('#cr_origem').val('');
+            $('#cr_destino').val('');
         }
 
         $(function() {
@@ -339,23 +414,11 @@
             });
         });
 
-        function status_server(e) {
-            var content = e.innerText.split("\n");
-
-            if (e.classList.contains('off')) {
-                e.classList.remove('off');
-                send_create_node(content[0], content[1]);
-            } else {
-                e.classList.add("off");
-                send_delete_create(content[0]);
-            }
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        nodes.set("1", new Node("1", "123"));
-        nodes.set("2", new Node("2", "123"));
-        nodes.set("3", new Node("3", "123"));
-
-        refresh_screen();
+        refresh_screen(true);
     </script>
 </body>
 

@@ -48,7 +48,8 @@ section .control-area {
 }
 
 .connect-coord,
-.control-area-list-chk {
+.control-area-list-chk,
+.center {
     align-items: center;
     display: flex;
     flex-direction: row;
@@ -80,6 +81,10 @@ section .control-area {
     border-bottom-color: rgb(225, 225, 233);
     border-bottom-style: solid;
     border-bottom-width: 1px;
+}
+
+.hide {
+    display: none;
 }
 
 .control-area-list article:hover {
