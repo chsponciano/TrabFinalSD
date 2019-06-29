@@ -1,4 +1,4 @@
-from ControllerAppConstants import DB_HOST, DB_USER, DB_PASS, DB_NAME, SUPPRESS_SQL
+from ControllerAppConstants import SERVER_IP, DB_USER, DB_PASS, DB_NAME, SUPPRESS_SQL
 from colorama import Fore, Style
 from datetime import datetime
 import MySQLdb
@@ -6,7 +6,7 @@ import MySQLdb
 
 class NodeDAO(object):
     def __init__(self):
-        self.db = MySQLdb.connect(DB_HOST, DB_USER, DB_PASS, DB_NAME)
+        self.db = MySQLdb.connect(SERVER_IP, DB_USER, DB_PASS, DB_NAME)
         self.cursor = self.db.cursor()
 
     def exists_by_node_name(self, node_name):

@@ -10,12 +10,22 @@ import ControllerAppQueue
 
 
 class ControllerAppListener(object):
-    def __init__(self, queue: ControllerAppQueue, sender: ControllerAppSender, task_scheduler: ControllerAppTaskScheduler):
+    def __init__(self, 
+                 queue, 
+                 sender=None, 
+                 task_scheduler=None, 
+                 node_controller=None, 
+                 queue_name=CONTROLLER_QUEUE, 
+                 message_handler_mapper=None,
+                 amazon=None):
         self.queue = queue
-        self.handlers = ControllerAppHandlers(sender, self.queue, task_scheduler, self)
-        self.set_message_handler_mapper(self.get_default_message_handler_mapper())
+        self.sender = sender
+        self.task_scheduler = task_scheduler
+        self.node_controller = node_controller
+        self.amazon = amazon
+        self.set_message_handler_mapper(self.get_default_message_handler_mapper() if message_handler_mapper is None else message_handler_mapper)
         self.queue.get_channel().basic_consume(
-            queue=CONTROLLER_QUEUE,
+            queue=queue_name,
             on_message_callback=self.callback_method,
             auto_ack=True
         )
@@ -58,14 +68,10 @@ class ControllerAppListener(object):
         return self.message_handler_mapper
 
     def get_default_message_handler_mapper(self):
+        handlers = ControllerAppHandlers(self.sender, self.queue, self.task_scheduler, self, self.node_controller, self.amazon)
         return {
-            'get_all_nodes': self.handlers.get_all_nodes,
-            'calc_route': self.handlers.calc_route,
-            'create_node': self.handlers.create_node,
-            'delete_node': self.handlers.delete_node,
-            'create_connection': self.handlers.create_connection,
-            'delete_connection': self.handlers.delete_connection,
-            'kill': self.handlers.kill,
-            'healthcheck': self.handlers.healthcheck,
-            'ping_healthcheck': self.handlers.ping_healthcheck,
+            'calc_route': handlers.calc_route,
+            'kill': handlers.kill,
+            'healthcheck': handlers.healthcheck,
+            'ping_healthcheck': handlers.ping_healthcheck,
         }
