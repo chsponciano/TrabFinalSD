@@ -1,4 +1,4 @@
-SERVER_IP = 'localhost'
+SERVER_IP = 'rabbit' #'localhost'
 HOST_NAME = 'rabbit'
 CONTROLLER_QUEUE = 'controller-queue'
 SUPPRESS_LOG_LISTENER = ['healthcheck']

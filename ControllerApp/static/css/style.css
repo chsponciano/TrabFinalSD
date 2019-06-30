@@ -132,3 +132,10 @@ footer a:hover {
 .toggle.ios .toggle-handle {
     border-radius: 20rem;
 }
+
+.logs-path {
+    position: fixed;
+    bottom: 0;
+    height: 25%;
+    padding: 5px;
+}

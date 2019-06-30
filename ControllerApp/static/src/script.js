@@ -1,5 +1,8 @@
 var nodes = new Map();
 var edges = new Map();
+var graph_model = null;
+var node_old_color = null;
+var logs_path = [];
 var count_edge = 1;
 var connect_init = 0;
 
@@ -28,6 +31,90 @@ function existEdge(source, target) {
     return false;
 }
 
+function draw_node_visited(node) {
+    for (let i = 0; i < graph_model.nodes.length; i++) {
+        if (node_old_color != null && node_old_color == graph_model.nodes[i].id) {
+            graph_model.nodes[i].color = '#007bff';
+        }
+
+        if (node == graph_model.nodes[i].id) {
+            graph_model.nodes[i].color = '#DE1738';
+        }
+    }
+
+    node_old_color = node;
+
+    var el;
+
+    for (let index = 0; index < 3; index++) {
+        el = document.getElementsByTagName('canvas')[0];
+        el.parentNode.removeChild(el);
+    }
+
+    s = new sigma({
+        graph: graph_model,
+        container: 'graph-container'
+    });
+}
+
+function draw_path(nodes) {
+    var node_prev = null;
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = 0; j < graph_model.nodes.length; j++) {
+            if (nodes[i] == graph_model.nodes[j].id) {
+                graph_model.nodes[j].color = '#DE1738';
+                break;
+            }
+        }
+
+        if (node_prev != null) {
+            for (let j = 0; j < graph_model.edges.length; j++) {
+                if ((graph_model.edges[j].source == node_prev && graph_model.edges[j].target == nodes[i]) || (graph_model.edges[j].source == nodes[i] && graph_model.edges[j].target == node_prev)) {
+                    graph_model.edges[j].color = '#DE1738';
+                    break;
+                }
+            }
+        }
+
+        node_prev = nodes[i];
+    }
+
+    var el;
+
+    for (let index = 0; index < 3; index++) {
+        el = document.getElementsByTagName('canvas')[0];
+        el.parentNode.removeChild(el);
+    }
+
+    s = new sigma({
+        graph: graph_model,
+        container: 'graph-container'
+    });
+}
+
+function init_path() {
+    for (let i = 0; i < graph_model.nodes.length; i++) {
+        graph_model.nodes[i].color = '#007bff';
+    }
+    for (let i = 0; i < graph_model.edges.length; i++) {
+        graph_model.edges[i].color = '#CCC';
+    }
+
+    $('.logs-path').val('');
+
+    var el;
+
+    for (let index = 0; index < 3; index++) {
+        el = document.getElementsByTagName('canvas')[0];
+        el.parentNode.removeChild(el);
+    }
+
+    s = new sigma({
+        graph: graph_model,
+        container: 'graph-container'
+    });
+}
+
 async function refresh_screen() {
     if (connect_init == 0) {
         connect_init = 1;
@@ -46,13 +133,13 @@ async function refresh_screen() {
             connect_init = 2;
         }
 
-        var g = {
+        graph_model = {
             nodes: [],
             edges: []
         };
 
         for (var [key, value] of nodes) {
-            g.nodes.push({
+            graph_model.nodes.push({
                 id: key,
                 label: key,
                 x: Math.random(),
@@ -63,7 +150,7 @@ async function refresh_screen() {
         }
 
         for (var [key, value] of edges) {
-            g.edges.push({
+            graph_model.edges.push({
                 id: value.edge_name,
                 source: value.source,
                 target: value.target,
@@ -73,7 +160,7 @@ async function refresh_screen() {
         }
 
         s = new sigma({
-            graph: g,
+            graph: graph_model,
             container: 'graph-container'
         });
 
@@ -109,15 +196,11 @@ var every_node_callback_message = function(args) {
     console.log(args);
 }
 
-// function send_message(message) {
-//     $(".img-update").addClass('hide');
-//     $(".img-updating").removeClass('hide');
-//     ws.send(message);
-// }
-
 function getAllNodes() {
-    // send_message('{"message": "get_all_nodes", "args": {"callback_queue": "frontend-queue", "callback_message": "get_all_nodes"}}');
-    $.get("http://localhost:5000/get_all_nodes", function(data) {
+    $(".img-update").addClass('hide');
+    $(".img-updating").removeClass('hide');
+
+    $.get("http://18.191.149.251/get_all_nodes", function(data) {
         console.log("getAllNodes: " + JSON.stringify(data));
         nodes.clear();
         edges.clear();
@@ -139,19 +222,21 @@ function getAllNodes() {
 }
 
 function createNode() {
+    $(".img-update").addClass('hide');
+    $(".img-updating").removeClass('hide');
+
     idx = $('.id_node').val();
     cust = $('.ms_node').val();
 
     $.post(
-        "http://localhost:5000/create_node", 
-        {
+        "http://18.191.149.251/create_node", {
             node_name: idx,
             processing_time: cust
         },
         function(data) {
             console.log("createNode: " + JSON.stringify(data));
-            if (!nodes.has(args.node_name)) {
-                nodes.set(args.node_name, new Node(args.node_name, args.processing_time));
+            if (!nodes.has(data.node_name)) {
+                nodes.set(data.node_name, new Node(data.node_name, data.processing_time));
             }
             refresh_screen();
         }
@@ -162,9 +247,11 @@ function createNode() {
 }
 
 function deleteNode(idx) {
+    $(".img-update").addClass('hide');
+    $(".img-updating").removeClass('hide');
+
     $.post(
-        "http://localhost:5000/delete_node", 
-        {
+        "http://18.191.149.251/delete_node", {
             node: idx,
         },
         function(data) {
@@ -178,11 +265,13 @@ function deleteNode(idx) {
 }
 
 function createConnection() {
+    $(".img-update").addClass('hide');
+    $(".img-updating").removeClass('hide');
+
     node1 = $('#cc_origem').val();
     node2 = $('#cc_destino').val();
     $.post(
-        "http://localhost:5000/create_connection", 
-        {
+        "http://18.191.149.251/create_connection", {
             node1: node1,
             node2: node2
         },
@@ -200,11 +289,13 @@ function createConnection() {
 }
 
 function deleteConnection() {
+    $(".img-update").addClass('hide');
+    $(".img-updating").removeClass('hide');
+
     node1 = $('#cc_origem').val();
     node2 = $('#cc_destino').val();
     $.post(
-        "http://localhost:5000/delete_connection", 
-        {
+        "http://18.191.149.251/delete_connection", {
             node1: node1,
             node2: node2
         },
@@ -226,39 +317,58 @@ function startCalcRoute() {
     node1 = $('#cr_origem').val();
     node2 = $('#cr_destino').val();
     algorithm = $('#cr_algoritmo').val();
-    
-    var socket = io.connect('http://127.0.0.1:5000');
+
+    var socket = io.connect('http://18.191.149.251');
     socket.on('connect', function() {
         console.log('connect')
         socket.emit(
-            "calc_route",
-            {
+            "calc_route", {
                 callback_message: "calcRouteResponse",
                 every_node_callback_message: "everyNodeCallbackMessage",
                 end_algorithm_callback_message: "endAlgorithmCallbackMessage",
                 start_node: node1,
                 target_node: node2,
-                algorithm : algorithm
+                algorithm: algorithm
             }
         );
     });
     socket.on('calcRouteResponse', function(data) {
         console.log("startou o algoritmo")
+        logs_path = [];
+        init_path();
         console.log(data);
     });
     socket.on('everyNodeCallbackMessage', function(data) {
         console.log("cai aqui toda vez que passar por um nó")
+        logs_path.push(data.current_node + ": " + data.total_dist);
+        draw_node_visited(data.current_node);
+        print_logs();
         console.log(data);
     });
     socket.on('endAlgorithmCallbackMessage', function(data) {
         console.log("cai aqui somente no ultimo nó, e somente uma vez.")
         console.log("impl do controller ainda não concluida, mas já da pra brinca com o frontend")
+        logs_path.push("Total do percurso: " + data.total_dist);
+        draw_path(data.visited_nodes)
+        print_logs();
         console.log(data);
         socket.disconnect();
     });
 
     $('#cr_origem').val('');
     $('#cr_destino').val('');
+}
+
+function print_logs() {
+    var logs_out = '';
+    for (let i = logs_path.length - 1; i >= logs_path.length - 6; i--) {
+        if (i < 0) {
+            break;
+        }
+        logs_out += logs_path[i] + "<br>";
+    }
+
+    document.getElementById('logs-path').innerHTML = logs_out;
 }
 
 $(function() {

@@ -3,6 +3,7 @@ from ServerAppSender import ServerAppSender
 from ServerAppQueue import ServerAppQueue
 from ServerAppConstants import CONTROLLER_QUEUE
 from colorama import Fore, Style
+from time import sleep
 
 
 class ServerAppHandlers(object):
@@ -45,6 +46,7 @@ class ServerAppHandlers(object):
         callback_queue = args['callback_queue']
 
         queue_mapper = self.mapper.get_queue_mapper()
+        sleep(3)
         visited_nodes.append(self.queue.get_queue_name())
 
         self.sender.send_message_to({

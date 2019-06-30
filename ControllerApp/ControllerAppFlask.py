@@ -141,6 +141,7 @@ def delete_node():
     try:
         connections = node_controller.get_all_connections(node)
         node_controller.delete_node(node)
+        amazon.delete_instance(node)
         for connection in connections:
             sender.send_message_to(
                 to=connection,
@@ -250,4 +251,4 @@ def run():
     global socketio
     
     app.config['SECRET_KEY'] = 'mysecret'
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True, port=80, host='0.0.0.0')
