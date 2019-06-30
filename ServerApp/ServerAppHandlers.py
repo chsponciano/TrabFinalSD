@@ -150,4 +150,5 @@ class ServerAppHandlers(object):
         '''
         print(f'This node is shutting down.')
         self.listener.stop_listening()
+        self.queue.self_delete()
         self.queue.close_connection()

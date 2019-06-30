@@ -13,6 +13,9 @@ class ServerAppQueue(object):
     def get_queue_name(self):
         return self.queue_name
 
+    def self_delete(self):
+        self.channel.queue_delete(queue=self.queue_name)
+
     def get_channel(self):
         return self.channel
 
