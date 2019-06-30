@@ -353,6 +353,7 @@ function startCalcRoute() {
         print_logs();
         console.log(data);
         socket.disconnect();
+        alert(JSON.stringify(data));
     });
 
     $('#cr_origem').val('');

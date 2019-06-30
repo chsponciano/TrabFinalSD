@@ -6,7 +6,9 @@ from ControllerAppQueue import ControllerAppQueue
 from ControllerAppListener import ControllerAppListener
 from colorama import Fore, Style
 from flask import jsonify
+from time import time_ns
 import os
+import math
 
 
 # get_all_nodes
@@ -190,22 +192,22 @@ def calc_route(args):
         global sender
         global node_controller
 
-        SOCKET_QUEUE = 'queue_do_socket'
+        SOCKET_QUEUE = f'SQ{time_ns()}'
         args['callback_queue'] = SOCKET_QUEUE
         every_node_callback_message_to_frontend = args['every_node_callback_message']
         end_algorithm_callback_message_to_frontend = args['end_algorithm_callback_message']
         args['every_node_callback_message'] = 'every_node_callback_message'
         args['end_algorithm_callback_message'] = 'end_algorithm_callback_message'
         args['algorithm'] = 'dijkstra'
+        threads_of_messages = {}
 
         if node_controller.has_control_over_nodes(args['start_node'], args['target_node']):
             handlers = {
-                'every_node_callback_message': 
-lambda args: print(f'{every_node_callback_message_to_frontend} - {args} - {emit(every_node_callback_message_to_frontend, args)}'),
-                'end_algorithm_callback_message': 
-lambda args: print(f'{end_algorithm_callback_message_to_frontend} - {args} - {emit(end_algorithm_callback_message_to_frontend, args)} - {listener.stop_listening()} - {queue.self_delete()} - {queue.close_connection()}')
+                'every_node_callback_message': lambda args: every_node_callback_message(args, every_node_callback_message_to_frontend, threads_of_messages),
+                'end_algorithm_callback_message': lambda args: end_algorithm_callback_message(args, listener, queue, end_algorithm_callback_message_to_frontend, threads_of_messages),
             }
             queue = ControllerAppQueue(queue_name=SOCKET_QUEUE)
+            print(f'Temp queue with name {SOCKET_QUEUE} created.')
             listener = ControllerAppListener(queue=queue, queue_name=SOCKET_QUEUE, message_handler_mapper=handlers)
             
             sender.send_message_to(
@@ -215,7 +217,6 @@ lambda args: print(f'{end_algorithm_callback_message_to_frontend} - {args} - {em
                     'args': args
                 }
             )
-            print('#'*150)
             success = 1
         else: 
             success = 0
@@ -224,15 +225,62 @@ lambda args: print(f'{end_algorithm_callback_message_to_frontend} - {args} - {em
         print('Exception')
         print(e)
     
-    emit(
-        args['callback_message'], 
-        {
-            'algorithm': args['algorithm'],
-            'success': success
-        }
-    )
+    message = args['callback_message']
+    args = {
+        'algorithm': args['algorithm'],
+        'success': success
+    }
+    print(f'Emiting {message} with value {args} via socket back to client.')
+    emit(message, args)
     if listener is not None:
         listener.start_listening()
+
+def every_node_callback_message(args, message, threads_of_messages):
+    # Update the status of the pid in question on the dictionary of threads
+    if not args['pid'] in threads_of_messages:
+        threads_of_messages[args['pid']] = {}
+    threads_of_messages[args['pid']]['active'] = 1
+    threads_of_messages[args['pid']]['args'] = args
+    
+    # Deletes useless information for the frontend
+    del args['pid']
+
+    # Emits a message with the arguments via socket
+    print(f'Emiting {message} with value {args} via socket back to client.')
+    emit(message, args)
+
+def end_algorithm_callback_message(args, listener, queue, message, threads_of_messages):
+    # Update the status of the pid in question on the dictionary of threads
+    if not args['pid'] in threads_of_messages:
+        threads_of_messages[args['pid']] = {}
+    threads_of_messages[args['pid']]['active'] = 0
+    threads_of_messages[args['pid']]['reached_end'] = args['reached_end']
+    threads_of_messages[args['pid']]['args'] = args
+
+    # Figures it out if theres is at leat one active process running in the algorithim 
+    any_active = False
+    for pid in threads_of_messages:
+        any_active = any_active or threads_of_messages[pid]['active'] is 1
+    
+    if not any_active:
+        # Finds the process that reached the target node with the least total distance
+        smallest_dist = {'total_dist': math.inf}
+        for pid in threads_of_messages:
+            thread_of_messages = threads_of_messages[pid]
+            if 'reached_end' in thread_of_messages and thread_of_messages['reached_end'] is 1 and thread_of_messages['args']['total_dist'] < smallest_dist['total_dist']:
+                smallest_dist = thread_of_messages['args']
+        
+        # Deletes useless information for the frontend
+        del smallest_dist['pid']
+        del smallest_dist['reached_end']
+
+        # Emits the final message via socket and kill's the temp queue
+        print(f'Emiting {message} with value {smallest_dist} via socket back to client.')
+        emit(message, smallest_dist)
+        listener.stop_listening()
+        queue.self_delete()
+        queue.close_connection()
+        print(f'Queue {queue.get_queue_name()} and it\'s listener were killed.')
 
 def add_node_controller(nc):
     global node_controller

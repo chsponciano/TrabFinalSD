@@ -2,7 +2,6 @@ from ControllerAppSender import ControllerAppSender
 from ControllerAppListener import ControllerAppListener
 from ControllerAppQueue import ControllerAppQueue
 from ControllerAppTaskScheduler import ControllerAppTaskScheduler
-# from ControllerAppSocket import ControllerAppSocket
 from ControllerAppConstants import HEALTHCHECK_INTERVAL
 from ControllerAppAmazon import ControllerAppAmazon
 from NodeController import NodeController

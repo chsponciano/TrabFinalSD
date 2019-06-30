@@ -1,5 +1,0 @@
-SERVER_IP = '18.191.149.251'
-CONTROLLER_QUEUE = 'controller-queue'
-FRONTEND_QUEUE = 'frontend-queue'
-SUPPRESS_LOG_LISTENER = []
-SUPPRESS_LOG_SENDER = []
