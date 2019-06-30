@@ -14,6 +14,10 @@ python ./start_algorithm.py q1 start_dijkstra target_node q5
 18.191.149.251 			-> Front
 18.191.149.251:15672 	-> Rabbit-Server(User: guest | password: guest)
 18.191.149.251:3306 	-> Mysql(User: root | password: admin)
-
+-------------------------------------------------------------
 docker run -it --name controller --network graph-network --hostname controller chsponciano/controller
 docker run -d --name t1 --network graph-network --hostname t1 chsponciano/noderabbit python ServerAppInitialize.py t1 132
+------------------------------------------------------------
+nohup sudo python ControllerAppInitialize.py > output.txt
+top -> ver pids
+kill -9 PID
