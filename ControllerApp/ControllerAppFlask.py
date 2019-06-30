@@ -235,6 +235,7 @@ def calc_route(args):
         listener.start_listening()
 
 def every_node_callback_message(args, message, threads_of_messages):
+    print(f'In - {message}: Threads of messages is {threads_of_messages}.')
     # Update the status of the pid in question on the dictionary of threads
     if not args['pid'] in threads_of_messages:
         threads_of_messages[args['pid']] = {}
@@ -242,13 +243,16 @@ def every_node_callback_message(args, message, threads_of_messages):
     threads_of_messages[args['pid']]['args'] = args
     
     # Deletes useless information for the frontend
-    del args['pid']
+    if 'pid' in args:
+        del args['pid']
 
+    print(f'Out - {message}: Threads of messages is {threads_of_messages}.')
     # Emits a message with the arguments via socket
     print(f'Emiting {message} with value {args} via socket back to client.')
     emit(message, args)
 
 def end_algorithm_callback_message(args, listener, queue, message, threads_of_messages):
+    print(f'In - {message}: Threads of messages is {threads_of_messages}.')
     # Update the status of the pid in question on the dictionary of threads
     if not args['pid'] in threads_of_messages:
         threads_of_messages[args['pid']] = {}
@@ -270,8 +274,13 @@ def end_algorithm_callback_message(args, listener, queue, message, threads_of_me
                 smallest_dist = thread_of_messages['args']
         
         # Deletes useless information for the frontend
-        del smallest_dist['pid']
-        del smallest_dist['reached_end']
+        if 'pid' in smallest_dist:
+            del smallest_dist['pid']
+        if 'reached_end' in smallest_dist:
+            del smallest_dist['reached_end']
+
+        if smallest_dist['total_dist'] is math.inf:
+            smallest_dist = {'message': 'The alghorithim couldn\'t come to an end becauce boths nodes are not connected.'}
 
         # Emits the final message via socket and kill's the temp queue
         print(f'Emiting {message} with value {smallest_dist} via socket back to client.')
@@ -280,6 +289,7 @@ def end_algorithm_callback_message(args, listener, queue, message, threads_of_me
         queue.self_delete()
         queue.close_connection()
         print(f'Queue {queue.get_queue_name()} and it\'s listener were killed.')
+    print(f'Out - {message}: Threads of messages is {threads_of_messages}.')
 
 def add_node_controller(nc):
     global node_controller
