@@ -255,6 +255,13 @@ function deleteNode(idx) {
             if (nodes.has(data.node.node_name)) {
                 nodes.delete(data.node.node_name)
             }
+
+            for (var [key, value] of edges) {
+                if ((value.source == data.node.node_name) || (value.target == data.node.node_name)) {
+                    edges.delete(key);
+                }
+            }
+
             refresh_screen();
         }
     );
