@@ -6,7 +6,7 @@ from ControllerAppQueue import ControllerAppQueue
 from ControllerAppListener import ControllerAppListener
 from colorama import Fore, Style
 from flask import jsonify
-from time import time_ns
+from time import time
 import os
 import math
 
@@ -143,6 +143,7 @@ def delete_node():
     try:
         connections = node_controller.get_all_connections(node)
         node_controller.delete_node(node)
+        amazon.delete_instance(node)
         for connection in connections:
             sender.send_message_to(
                 to=connection,
@@ -191,7 +192,7 @@ def calc_route(args):
         global sender
         global node_controller
 
-        SOCKET_QUEUE = f'SQ{time_ns()}'
+        SOCKET_QUEUE = f'SQ{time()}'
         args['callback_queue'] = SOCKET_QUEUE
         every_node_callback_message_to_frontend = args['every_node_callback_message']
         end_algorithm_callback_message_to_frontend = args['end_algorithm_callback_message']
@@ -308,4 +309,4 @@ def run():
     global socketio
     
     app.config['SECRET_KEY'] = 'mysecret'
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True, port=80, host='0.0.0.0')
