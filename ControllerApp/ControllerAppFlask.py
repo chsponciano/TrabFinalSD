@@ -6,7 +6,7 @@ from ControllerAppQueue import ControllerAppQueue
 from ControllerAppListener import ControllerAppListener
 from colorama import Fore, Style
 from flask import jsonify
-from time import time_ns
+from time import time
 import os
 import math
 
@@ -192,7 +192,7 @@ def calc_route(args):
         global sender
         global node_controller
 
-        SOCKET_QUEUE = f'SQ{time_ns()}'
+        SOCKET_QUEUE = f'SQ{time()}'
         args['callback_queue'] = SOCKET_QUEUE
         every_node_callback_message_to_frontend = args['every_node_callback_message']
         end_algorithm_callback_message_to_frontend = args['end_algorithm_callback_message']

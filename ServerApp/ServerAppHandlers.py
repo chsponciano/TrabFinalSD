@@ -3,7 +3,7 @@ from ServerAppSender import ServerAppSender
 from ServerAppQueue import ServerAppQueue
 from ServerAppConstants import CONTROLLER_QUEUE
 from colorama import Fore, Style
-from time import sleep, time_ns
+from time import sleep, time
 
 
 class ServerAppHandlers(object):
@@ -86,7 +86,7 @@ class ServerAppHandlers(object):
                             'every_node_callback_message': every_node_callback_message,
                             'end_algorithm_callback_message': end_algorithm_callback_message,
                             'callback_queue': callback_queue,
-                            'pid': pid if first else f'{self.queue.get_queue_name()}{time_ns()}'
+                            'pid': pid if first else f'{self.queue.get_queue_name()}{time()}'
                         }
                     }, connection)
                     first = False
@@ -118,7 +118,7 @@ class ServerAppHandlers(object):
             'every_node_callback_message': args['every_node_callback_message'],
             'end_algorithm_callback_message': args['end_algorithm_callback_message'],
             'callback_queue': args['callback_queue'],
-            'pid': f'{self.queue.get_queue_name()}{time_ns()}'
+            'pid': f'{self.queue.get_queue_name()}{time()}'
         })
 
     def healthcheck(self, args: dict):
