@@ -7,7 +7,10 @@ class ControllerAppAmazon(object):
                                 chsponciano/noderabbit python ServerAppInitialize.py " + str(node_name) + " " + str(processing_time))
     
     def delete_instance(self, node_name):
-        self.exec_command("docker rm -f " + node_name)
+        self.exec_command("docker rm -f " + str(node_name))
+
+    def start_instance(self, node_name):
+        self.exec_command("docker start " + str(node_name))
 
     def exec_command(self, command):
         with open("output.log", "a") as output:

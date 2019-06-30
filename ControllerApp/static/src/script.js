@@ -59,6 +59,13 @@ function draw_node_visited(node) {
 
 function draw_path(nodes) {
     var node_prev = null;
+
+    for (let i = 0; i < graph_model.nodes.length; i++) {
+        if (node_old_color == graph_model.nodes[i].id) {
+            graph_model.nodes[i].color = '#007bff';
+        }
+    }
+
     for (let i = 0; i < nodes.length; i++) {
         for (let j = 0; j < graph_model.nodes.length; j++) {
             if (nodes[i] == graph_model.nodes[j].id) {
@@ -100,7 +107,7 @@ function init_path() {
         graph_model.edges[i].color = '#CCC';
     }
 
-    $('.logs-path').val('');
+    init_logs_path();
 
     var el;
 
@@ -116,6 +123,8 @@ function init_path() {
 }
 
 async function refresh_screen() {
+    init_logs_path();
+
     if (connect_init == 0) {
         connect_init = 1;
         await sleep(1000);
@@ -183,19 +192,6 @@ function list_server() {
 
 }
 
-var calc_router = function(args) {
-    console.log(args);
-    refresh_screen();
-}
-
-var end_algorithm_callback_message = function(args) {
-    console.log(args);
-}
-
-var every_node_callback_message = function(args) {
-    console.log(args);
-}
-
 function getAllNodes() {
     $(".img-update").addClass('hide');
     $(".img-updating").removeClass('hide');
@@ -256,8 +252,8 @@ function deleteNode(idx) {
         },
         function(data) {
             console.log("deleteNode: " + JSON.stringify(data));
-            if (nodes.has(data.node_name)) {
-                nodes.delete(data.node_name)
+            if (nodes.has(data.node.node_name)) {
+                nodes.delete(data.node.node_name)
             }
             refresh_screen();
         }
@@ -279,8 +275,8 @@ function createConnection() {
             console.log("createConnection: " + JSON.stringify(data));
             edges.set('e' + count_edge, new Edge('e' + count_edge, data.node1, data.node2));
             count_edge++;
-            edges.set('e' + count_edge, new Edge('e' + count_edge, data.node1, data.node2));
-            count_edge++;
+            // edges.set('e' + count_edge, new Edge('e' + count_edge, data.node2, data.node1));
+            // count_edge++;
             refresh_screen();
         }
     );
@@ -333,34 +329,35 @@ function startCalcRoute() {
         );
     });
     socket.on('calcRouteResponse', function(data) {
-        console.log("startou o algoritmo")
-        logs_path = [];
         init_path();
+        print_logs('Inciando ' + data.algorithm);
         console.log(data);
     });
     socket.on('everyNodeCallbackMessage', function(data) {
-        console.log("cai aqui toda vez que passar por um nó")
-        logs_path.push(data.current_node + ": " + data.total_dist);
         draw_node_visited(data.current_node);
-        print_logs();
+        print_logs(data.current_node + ": " + data.total_dist);
         console.log(data);
     });
     socket.on('endAlgorithmCallbackMessage', function(data) {
-        console.log("cai aqui somente no ultimo nó, e somente uma vez.")
-        console.log("impl do controller ainda não concluida, mas já da pra brinca com o frontend")
-        logs_path.push("Total do percurso: " + data.total_dist);
         draw_path(data.visited_nodes)
-        print_logs();
+        print_logs("Total do percurso: " + data.total_dist);
         console.log(data);
         socket.disconnect();
-        alert(JSON.stringify(data));
     });
 
     $('#cr_origem').val('');
     $('#cr_destino').val('');
+    $('#cr_algoritmo').val('');
 }
 
-function print_logs() {
+function init_logs_path() {
+    logs_path = [];
+    document.getElementById('logs-path').innerHTML = '';
+}
+
+function print_logs(content) {
+    logs_path.push(content);
+
     var logs_out = '';
     for (let i = logs_path.length - 1; i >= logs_path.length - 6; i--) {
         if (i < 0) {
