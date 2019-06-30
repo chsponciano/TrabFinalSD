@@ -50,7 +50,6 @@ class ServerAppHandlers(object):
         visited_nodes.append(self.queue.get_queue_name())
 
         if target_node == self.queue.get_queue_name():
-            # TODO - ping_dijkstra done no controller
             self.sender.send_message_to({
                 'message': end_algorithm_callback_message,
                 'args': {
