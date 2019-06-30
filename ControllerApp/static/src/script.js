@@ -255,6 +255,7 @@ function startCalcRoute() {
         console.log("impl do controller ainda não concluida, mas já da pra brinca com o frontend")
         console.log(data);
         socket.disconnect();
+        alert(JSON.stringify(data));
     });
 
     $('#cr_origem').val('');

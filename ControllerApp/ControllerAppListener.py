@@ -40,6 +40,7 @@ class ControllerAppListener(object):
             self.handle_message(message)
         except Exception as e:
             print(f'Cannot handle message. {message} {e}')
+            raise e
 
     def handle_message(self, message: dict):
         mapper = self.get_message_handler_mapper()

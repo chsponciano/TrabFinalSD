@@ -2,7 +2,7 @@ from ControllerAppSender import ControllerAppSender
 from ControllerAppQueue import ControllerAppQueue
 from ControllerAppTaskScheduler import ControllerAppTaskScheduler
 from NodeController import NodeController
-from ControllerAppConstants import CONTROLLER_QUEUE, FRONTEND_QUEUE, RABBIT_HOST
+from ControllerAppConstants import CONTROLLER_QUEUE, RABBIT_HOST
 from colorama import Fore, Style
 import os
 
@@ -55,16 +55,6 @@ class ControllerAppHandlers(object):
             node_name = node['node_name']
             processing_time = node['processing_time']
             connections = node['connections']
-            self.sender.send_message_to(
-                to=FRONTEND_QUEUE,
-                message={
-                    'message': 'create_node',
-                    'args': {
-                        'node_name': node_name,
-                        'processing_time': processing_time
-                    }
-                }
-            )
             self.amazon.new_instance(node_name, processing_time)
             for connection in connections:
                 self.sender.send_message_to(

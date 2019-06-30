@@ -3,6 +3,7 @@ from ServerAppSender import ServerAppSender
 from ServerAppQueue import ServerAppQueue
 from ServerAppConstants import CONTROLLER_QUEUE
 from colorama import Fore, Style
+from time import time_ns
 
 
 class ServerAppHandlers(object):
@@ -43,17 +44,10 @@ class ServerAppHandlers(object):
         every_node_callback_message = args['every_node_callback_message']
         end_algorithm_callback_message = args['end_algorithm_callback_message']
         callback_queue = args['callback_queue']
+        pid = args['pid']
 
         queue_mapper = self.mapper.get_queue_mapper()
         visited_nodes.append(self.queue.get_queue_name())
-
-        self.sender.send_message_to({
-            'message': every_node_callback_message,
-            'args': {
-                'current_node': self.queue.get_queue_name(),
-                'total_dist': source_dist
-            }
-        }, callback_queue)
 
         if target_node == self.queue.get_queue_name():
             # TODO - ping_dijkstra done no controller
@@ -61,11 +55,22 @@ class ServerAppHandlers(object):
                 'message': end_algorithm_callback_message,
                 'args': {
                     'visited_nodes': visited_nodes,
-                    'total_dist': source_dist
+                    'total_dist': source_dist,
+                    'reached_end': 1,
+                    'pid': pid
                 }
             }, callback_queue)
         elif (not source_node in queue_mapper) or (queue_mapper[source_node]['dist'] >= source_dist):
+            self.sender.send_message_to({
+                'message': every_node_callback_message,
+                'args': {
+                    'current_node': self.queue.get_queue_name(),
+                    'total_dist': source_dist,
+                    'pid': pid
+                }
+            }, callback_queue)
             self.mapper.add_to_queue_mapper(source_node, {'dist': source_dist})
+            first = True
             for connection in self.mapper.get_connections():
                 if not connection in visited_nodes:
                     self.sender.send_message_to({
@@ -79,10 +84,21 @@ class ServerAppHandlers(object):
                             'target_node': target_node,
                             'every_node_callback_message': every_node_callback_message,
                             'end_algorithm_callback_message': end_algorithm_callback_message,
-                            'callback_queue': callback_queue
+                            'callback_queue': callback_queue,
+                            'pid': pid if first else f'{self.queue.get_queue_name()}{time_ns()}'
                         }
                     }, connection)
+                    first = False
         else:
+            self.sender.send_message_to({
+                'message': end_algorithm_callback_message,
+                'args': {
+                    'visited_nodes': visited_nodes,
+                    'total_dist': source_dist,
+                    'reached_end': 0,
+                    'pid': pid
+                }
+            }, callback_queue)
             print(f'{Fore.YELLOW}Dijkstra cannot continue.{Style.RESET_ALL} {args} {self.mapper.get_queue_mapper()}')
 
     def start_dijkstra(self, args: dict):
@@ -100,7 +116,8 @@ class ServerAppHandlers(object):
             'target_node': target_node,
             'every_node_callback_message': args['every_node_callback_message'],
             'end_algorithm_callback_message': args['end_algorithm_callback_message'],
-            'callback_queue': args['callback_queue']
+            'callback_queue': args['callback_queue'],
+            'pid': f'{self.queue.get_queue_name()}{time_ns()}'
         })
 
     def healthcheck(self, args: dict):

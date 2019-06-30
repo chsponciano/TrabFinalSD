@@ -17,3 +17,6 @@ class ControllerAppQueue(object):
 
     def close_connection(self):
         self.connection.close()
+
+    def get_queue_name(self):
+        return self.queue_name
