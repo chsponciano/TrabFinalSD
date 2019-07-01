@@ -4,6 +4,7 @@ from ServerAppQueue import ServerAppQueue
 from ServerAppConstants import CONTROLLER_QUEUE
 from colorama import Fore, Style
 from time import sleep, time
+from threading import Thread
 
 
 class ServerAppHandlers(object):
@@ -13,14 +14,14 @@ class ServerAppHandlers(object):
         self.queue = queue
         self.listener = listener
 
-    def connect_to(self, args: dict):
-        '''
-        Se conecta com o nó requisitado
-        É feita somente uma conexão unidirecional, se o nó enviado no args deve conhece esse nó também, ele deverá receber a mensma mensagem
-        '''
-        node = args['node']
-        self.mapper.connect_to(node)
-        print(f'Connection between nodes {self.queue.get_queue_name()} and {node} has been established.')
+    # def connect_to(self, args: dict):
+    #     '''
+    #     Se conecta com o nó requisitado
+    #     É feita somente uma conexão unidirecional, se o nó enviado no args deve conhece esse nó também, ele deverá receber a mensma mensagem
+    #     '''
+    #     node = args['node']
+    #     self.mapper.connect_to(node)
+    #     print(f'Connection between nodes {self.queue.get_queue_name()} and {node} has been established.')
 
     def ping_everyone(self, args: dict):
         '''
@@ -32,6 +33,159 @@ class ServerAppHandlers(object):
 
     def ping(self, args: dict):
         print(f'{self.queue.get_queue_name()} pinged.')
+
+    def start_next_neightboor(self, args: dict):
+        args = {
+            'source': {
+                'node': self.queue.get_queue_name(),
+                'dist': None
+            },
+            'target_node': args['target_node'],
+            'visited_nodes': [],
+            'every_node_callback_message': args['every_node_callback_message'],
+            'end_algorithm_callback_message': args['end_algorithm_callback_message'],
+            'callback_queue': args['callback_queue'],
+            'visited_neightboors': {},
+            'is_visiting_neightboor': 0
+        }
+        self.run_next_neightboor(args)
+        
+
+    def run_next_neightboor(self, args: dict):            
+        Thread(target=self.next_neightboor, args=[args]).start()
+
+    def next_neightboor(self, args: dict):
+        '''
+        Algoritmo que é chamado a cada iteração de Next Neightboor
+        '''
+        source_node = args['source']['node']
+        source_dist = 0 if args['source']['dist'] is None else args['source']['dist'] + self.queue.get_processing_time()
+        target_node = args['target_node']
+        visited_nodes = args['visited_nodes']
+        every_node_callback_message = args['every_node_callback_message']
+        end_algorithm_callback_message = args['end_algorithm_callback_message']
+        callback_queue = args['callback_queue']
+        visited_neightboors = args['visited_neightboors']
+        is_visiting_neightboor = args['is_visiting_neightboor']
+        if 'node_requesting' in args:
+            node_requesting = args['node_requesting']
+
+        if target_node == self.queue.get_queue_name():
+            self.sender.send_message_to(
+                to=callback_queue,
+                message={
+                    'message': end_algorithm_callback_message,
+                    'args': {
+                        'source': {
+                            'node': source_node,
+                            'dist': source_dist + self.queue.get_processing_time() + args['node_requesting_processing_time']
+                        },
+                        'visited_nodes': visited_nodes,
+                        'algorithm': 'next_neightboor'
+                    }
+                }
+            )
+        elif is_visiting_neightboor is 1:
+            visited_neightboors[self.queue.get_queue_name()] = {}
+            visited_neightboors[self.queue.get_queue_name()]['processing_time'] = self.queue.get_processing_time()
+            self.sender.send_message_to(
+                to=node_requesting,
+                message={
+                    'message': 'next_neightboor',
+                    'args': {
+                        'source': {
+                            'node': source_node,
+                            'dist': source_dist
+                        },
+                        'visited_nodes': visited_nodes,
+                        'target_node': target_node,
+                        'every_node_callback_message': every_node_callback_message,
+                        'end_algorithm_callback_message': end_algorithm_callback_message,
+                        'callback_queue': callback_queue,
+                        'visited_neightboors': visited_neightboors,
+                        'is_visiting_neightboor': 0,
+                    }
+                }
+            )
+        else:
+            any_neightboor = self.mapper.find_any_not_in(self.get_as_list_of_node_names(visited_neightboors, in_addition_to=visited_nodes))
+            if any_neightboor is not None:
+                self.sender.send_message_to(
+                    to=any_neightboor,
+                    message={
+                        'message': 'next_neightboor',
+                        'args': {
+                            'source': {
+                                'node': source_node,
+                                'dist': source_dist
+                            },
+                            'visited_nodes': visited_nodes,
+                            'target_node': target_node,
+                            'every_node_callback_message': every_node_callback_message,
+                            'end_algorithm_callback_message': end_algorithm_callback_message,
+                            'callback_queue': callback_queue,
+                            'node_requesting': self.queue.get_queue_name(),
+                            'node_requesting_processing_time': self.queue.get_processing_time(),
+                            'visited_neightboors': visited_neightboors,
+                            'is_visiting_neightboor': 1,
+                        }
+                    }
+                )
+            else:
+                print(f'{Fore.RED}AQUIIII{Style.RESET_ALL}')
+                self.sender.send_message_to(
+                    to=callback_queue,
+                    message={
+                        'message': every_node_callback_message,
+                        'args': {
+                            'current_node': self.queue.get_queue_name(),
+                            'total_dist': source_dist,
+                            'algorithm': 'next_neightboor'
+                        }
+                    }
+                )
+                closest_neightboor = {}                
+                for neightboor in visited_neightboors:
+                    if not ('processing_time' in closest_neightboor) or closest_neightboor['processing_time'] > neightboor['processing_time']:
+                        closest_neightboor = neightboor
+                visited_nodes.append(self.queue.get_queue_name())
+                self.sender.send_message_to(
+                    to=closest_neightboor,
+                    message={
+                        'message': 'next_neightboor',
+                        'args': {
+                            'source': {
+                                'node': source_node,
+                                'dist': source_dist + self.queue.get_processing_time()
+                            },
+                            'visited_nodes': visited_nodes,
+                            'target_node': target_node,
+                            'every_node_callback_message': every_node_callback_message,
+                            'end_algorithm_callback_message': end_algorithm_callback_message,
+                            'callback_queue': callback_queue,
+                            'is_visiting_neightboor': 0,
+                            'visited_neightboors': {},
+                        }
+                    }
+                )
+
+
+    def get_as_list_of_node_names(self, list_of_dicts, in_addition_to=[]):
+        in_addition_to = list(in_addition_to)
+        for key in list_of_dicts:
+            in_addition_to.append(key)
+        r = in_addition_to
+        in_addition_to = []
+        return r
+
+    def run_dijkstra(self, args: dict):
+        Thread(target=self.dijkstra, args=[args]).start()
+
+    def try_dijkstra(self, args: dict):
+        try:
+            self.dijkstra(args)
+        except Exception as e:
+            print('Cannot handle message. {\'message\': \'dijkstra\', \'args\': ' + args + '} - ' + e)
 
     def dijkstra(self, args: dict):
         '''
@@ -46,9 +200,20 @@ class ServerAppHandlers(object):
         callback_queue = args['callback_queue']
         pid = args['pid']
 
+        sleep(self.queue.get_processing_time() / 1000)
+
         queue_mapper = self.mapper.get_queue_mapper()
-        sleep(3)
         visited_nodes.append(self.queue.get_queue_name())
+
+        self.sender.send_message_to({
+            'message': every_node_callback_message,
+            'args': {
+                'current_node': self.queue.get_queue_name(),
+                'total_dist': source_dist,
+                'pid': pid,
+                'algorithm': 'dijkstra'
+            }
+        }, callback_queue)
 
         if target_node == self.queue.get_queue_name():
             self.sender.send_message_to({
@@ -57,18 +222,11 @@ class ServerAppHandlers(object):
                     'visited_nodes': visited_nodes,
                     'total_dist': source_dist,
                     'reached_end': 1,
-                    'pid': pid
+                    'pid': pid,
+                    'algorithm': 'dijkstra'
                 }
             }, callback_queue)
-        elif (not source_node in queue_mapper) or (queue_mapper[source_node]['dist'] >= source_dist):
-            self.sender.send_message_to({
-                'message': every_node_callback_message,
-                'args': {
-                    'current_node': self.queue.get_queue_name(),
-                    'total_dist': source_dist,
-                    'pid': pid
-                }
-            }, callback_queue)
+        elif (not source_node in queue_mapper) or (not source_node in queue_mapper) or (queue_mapper[source_node]['dist'] >= source_dist):
             self.mapper.add_to_queue_mapper(source_node, {'dist': source_dist})
             first = True
             for connection in self.mapper.get_connections():
@@ -96,7 +254,8 @@ class ServerAppHandlers(object):
                     'visited_nodes': visited_nodes,
                     'total_dist': source_dist,
                     'reached_end': 0,
-                    'pid': pid
+                    'pid': pid,
+                    'algorithm': 'dijkstra'
                 }
             }, callback_queue)
             print(f'{Fore.YELLOW}Dijkstra cannot continue.{Style.RESET_ALL} {args} {self.mapper.get_queue_mapper()}')
@@ -135,13 +294,13 @@ class ServerAppHandlers(object):
             }
         )
 
-    def delete_connection(self, args: dict):
-        '''
-        Remove uma conexão da lista de conexões desse vértice
-        '''
-        connection = args['connection']
-        self.mapper.remove_connection(connection)
-        print(f'The connection between {self.queue.get_queue_name()} and {connection} has been undone.')
+    # def delete_connection(self, args: dict):
+    #     '''
+    #     Remove uma conexão da lista de conexões desse vértice
+    #     '''
+    #     connection = args['connection']
+    #     self.mapper.remove_connection(connection)
+    #     print(f'The connection between {self.queue.get_queue_name()} and {connection} has been undone.')
     
     def kill(self, args: dict):
         '''

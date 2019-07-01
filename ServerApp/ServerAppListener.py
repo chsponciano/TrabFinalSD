@@ -60,12 +60,14 @@ class ServerAppListener(object):
 
     def get_default_message_handler_mapper(self):
         return {
-            'connect_to': self.handlers.connect_to,
+            #'connect_to': self.handlers.connect_to,
             'ping_everyone': self.handlers.ping_everyone,
             'ping': self.handlers.ping,
-            'dijkstra': self.handlers.dijkstra,
+            'dijkstra': self.handlers.run_dijkstra,
             'start_dijkstra': self.handlers.start_dijkstra,
+            'next_neightboor': self.handlers.run_next_neightboor,
+            'start_next_neightboor': self.handlers.start_next_neightboor,
             'healthcheck': self.handlers.healthcheck,
-            'delete_connection': self.handlers.delete_connection,
+            #'delete_connection': self.handlers.delete_connection,
             'kill': self.handlers.kill
         }

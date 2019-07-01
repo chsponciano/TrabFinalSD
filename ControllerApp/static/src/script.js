@@ -5,6 +5,8 @@ var node_old_color = null;
 var logs_path = [];
 var count_edge = 1;
 var connect_init = 0;
+var serverIp = "http://localhost:5000";
+// var serverPort = "5000";
 
 class Node {
     constructor(node_name, processing_time) {
@@ -196,7 +198,7 @@ function getAllNodes() {
     $(".img-update").addClass('hide');
     $(".img-updating").removeClass('hide');
 
-    $.get("http://18.191.149.251/get_all_nodes", function(data) {
+    $.get(serverIp + "/get_all_nodes", function(data) {
         console.log("getAllNodes: " + JSON.stringify(data));
         nodes.clear();
         edges.clear();
@@ -225,7 +227,7 @@ function createNode() {
     cust = $('.ms_node').val();
 
     $.post(
-        "http://18.191.149.251/create_node", {
+        serverIp + "/create_node", {
             node_name: idx,
             processing_time: cust
         },
@@ -247,7 +249,7 @@ function deleteNode(idx) {
     $(".img-updating").removeClass('hide');
 
     $.post(
-        "http://18.191.149.251/delete_node", {
+        serverIp + "/delete_node", {
             node: idx,
         },
         function(data) {
@@ -267,7 +269,7 @@ function createConnection() {
     node1 = $('#cc_origem').val();
     node2 = $('#cc_destino').val();
     $.post(
-        "http://18.191.149.251/create_connection", {
+        serverIp + "/create_connection", {
             node1: node1,
             node2: node2
         },
@@ -291,7 +293,7 @@ function deleteConnection() {
     node1 = $('#cc_origem').val();
     node2 = $('#cc_destino').val();
     $.post(
-        "http://18.191.149.251/delete_connection", {
+        serverIp + "/delete_connection", {
             node1: node1,
             node2: node2
         },
@@ -314,7 +316,7 @@ function startCalcRoute() {
     node2 = $('#cr_destino').val();
     algorithm = $('#cr_algoritmo').val();
 
-    var socket = io.connect('http://18.191.149.251');
+    var socket = io.connect(serverIp);
     socket.on('connect', function() {
         console.log('connect')
         socket.emit(
@@ -329,20 +331,20 @@ function startCalcRoute() {
         );
     });
     socket.on('calcRouteResponse', function(data) {
-        init_path();
-        print_logs('Inciando ' + data.algorithm);
+        //init_path();
+        //print_logs('Inciando ' + data.algorithm);
         console.log(data);
     });
     socket.on('everyNodeCallbackMessage', function(data) {
-        draw_node_visited(data.current_node);
-        print_logs(data.current_node + ": " + data.total_dist);
+        //draw_node_visited(data.current_node);
+        //print_logs(data.current_node + ": " + data.total_dist);
         console.log(data);
     });
     socket.on('endAlgorithmCallbackMessage', function(data) {
-        draw_path(data.visited_nodes)
-        print_logs("Total do percurso: " + data.total_dist);
+        //draw_path(data.visited_nodes)
+        //print_logs("Total do percurso: " + data.total_dist);
         console.log(data);
-        socket.disconnect();
+        socket.close();
     });
 
     $('#cr_origem').val('');

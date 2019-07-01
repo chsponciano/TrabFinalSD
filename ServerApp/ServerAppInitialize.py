@@ -14,8 +14,8 @@ assert len(args) is 2
 this_queue_name = args[0]
 processing_time = args[1]
 
-mapper = ServerAppMapper()
 queue = ServerAppQueue(this_queue_name, processing_time)
+mapper = ServerAppMapper(queue)
 sender = ServerAppSender(queue)
 listener = ServerAppListener(queue, sender, mapper)
 

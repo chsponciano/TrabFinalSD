@@ -1,5 +1,9 @@
-SERVER_IP = 'rabbit' #'localhost'
-HOST_NAME = 'rabbit'
+SERVER_IP = 'localhost'
 CONTROLLER_QUEUE = 'controller-queue'
 SUPPRESS_LOG_LISTENER = ['healthcheck']
 SUPPRESS_LOG_SENDER = ['ping_healthcheck']
+DB_HOST = 'localhost'
+DB_USER = 'root'
+DB_PASS = ''
+DB_NAME = 'trab_final_sd'
+SUPPRESS_SQL = True

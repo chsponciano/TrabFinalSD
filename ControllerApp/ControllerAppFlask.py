@@ -1,7 +1,7 @@
-from flask import Flask, render_template, request, redirect, session, flash, url_for
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO, send, emit
 from NodeController import NodeController
-from ControllerAppConstants import CONTROLLER_QUEUE
+from ControllerAppConstants import CONTROLLER_QUEUE, SOCKET_PORT, SOCKET_HOST
 from ControllerAppQueue import ControllerAppQueue
 from ControllerAppListener import ControllerAppListener
 from colorama import Fore, Style
@@ -10,16 +10,6 @@ from time import time
 import os
 import math
 
-
-# get_all_nodes
-# create_node
-# delete_node
-# create_connection
-# delete_connection
-
-# calc_router
-# every_node_callback_message
-# end_algorithm_callback_message
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -198,7 +188,7 @@ def calc_route(args):
         end_algorithm_callback_message_to_frontend = args['end_algorithm_callback_message']
         args['every_node_callback_message'] = 'every_node_callback_message'
         args['end_algorithm_callback_message'] = 'end_algorithm_callback_message'
-        args['algorithm'] = 'dijkstra'
+        args['algorithm'] = {1: 'dijkstra', 2: 'next_neightboor'}[int(args['algorithm'])]
         threads_of_messages = {}
 
         if node_controller.has_control_over_nodes(args['start_node'], args['target_node']):
@@ -236,61 +226,89 @@ def calc_route(args):
         listener.start_listening()
 
 def every_node_callback_message(args, message, threads_of_messages):
-    print(f'In - {message}: Threads of messages is {threads_of_messages}.')
-    # Update the status of the pid in question on the dictionary of threads
-    if not args['pid'] in threads_of_messages:
-        threads_of_messages[args['pid']] = {}
-    threads_of_messages[args['pid']]['active'] = 1
-    threads_of_messages[args['pid']]['args'] = args
-    
-    # Deletes useless information for the frontend
-    if 'pid' in args:
-        del args['pid']
-
-    print(f'Out - {message}: Threads of messages is {threads_of_messages}.')
-    # Emits a message with the arguments via socket
-    print(f'Emiting {message} with value {args} via socket back to client.')
-    emit(message, args)
-
-def end_algorithm_callback_message(args, listener, queue, message, threads_of_messages):
-    print(f'In - {message}: Threads of messages is {threads_of_messages}.')
-    # Update the status of the pid in question on the dictionary of threads
-    if not args['pid'] in threads_of_messages:
-        threads_of_messages[args['pid']] = {}
-    threads_of_messages[args['pid']]['active'] = 0
-    threads_of_messages[args['pid']]['reached_end'] = args['reached_end']
-    threads_of_messages[args['pid']]['args'] = args
-
-    # Figures it out if theres is at leat one active process running in the algorithim 
-    any_active = False
-    for pid in threads_of_messages:
-        any_active = any_active or threads_of_messages[pid]['active'] is 1
-    
-    if not any_active:
-        # Finds the process that reached the target node with the least total distance
-        smallest_dist = {'total_dist': math.inf}
-        for pid in threads_of_messages:
-            thread_of_messages = threads_of_messages[pid]
-            if 'reached_end' in thread_of_messages and thread_of_messages['reached_end'] is 1 and thread_of_messages['args']['total_dist'] < smallest_dist['total_dist']:
-                smallest_dist = thread_of_messages['args']
+    if args['algorithm'] == 'dijkstra':
+        print(f'In - {message}: Threads of messages is {threads_of_messages}.')
+        # Update the status of the pid in question on the dictionary of threads
+        if not args['pid'] in threads_of_messages:
+            threads_of_messages[args['pid']] = {}
+        threads_of_messages[args['pid']]['active'] = 1
+        threads_of_messages[args['pid']]['args'] = args
         
         # Deletes useless information for the frontend
-        if 'pid' in smallest_dist:
-            del smallest_dist['pid']
-        if 'reached_end' in smallest_dist:
-            del smallest_dist['reached_end']
+        if 'pid' in args:
+            del args['pid']
 
-        if smallest_dist['total_dist'] is math.inf:
-            smallest_dist = {'message': 'The alghorithim couldn\'t come to an end becauce boths nodes are not connected.'}
+        print(f'Out - {message}: Threads of messages is {threads_of_messages}.')
+        # Emits a message with the arguments via socket
+        print(f'Emiting {message} with value {args} via socket back to client.')
+        try:
+            emit(message, args)
+        except Exception as e:
+            print(f'{Fore.RED}Exception {e}{Style.RESET_ALL}')
+    else:
+        print(f'Emiting {message} with value {args} via socket back to client.')
+        try:
+            emit(message, args)
+        except Exception as e:
+            print(f'{Fore.RED}Exception {e}{Style.RESET_ALL}')
+    
 
-        # Emits the final message via socket and kill's the temp queue
-        print(f'Emiting {message} with value {smallest_dist} via socket back to client.')
-        emit(message, smallest_dist)
-        listener.stop_listening()
-        queue.self_delete()
-        queue.close_connection()
-        print(f'Queue {queue.get_queue_name()} and it\'s listener were killed.')
-    print(f'Out - {message}: Threads of messages is {threads_of_messages}.')
+def end_algorithm_callback_message(args, listener, queue, message, threads_of_messages):
+    if args['algorithm'] == 'dijkstra':
+        print(f'In - {message}: Threads of messages is {threads_of_messages}.')
+        # Update the status of the pid in question on the dictionary of threads
+        if not args['pid'] in threads_of_messages:
+            threads_of_messages[args['pid']] = {}
+        threads_of_messages[args['pid']]['active'] = 0
+        threads_of_messages[args['pid']]['reached_end'] = args['reached_end']
+        threads_of_messages[args['pid']]['args'] = args
+
+        # Figures it out if theres is at leat one active process running in the algorithim 
+        any_active = False
+        for pid in threads_of_messages:
+            any_active = any_active or threads_of_messages[pid]['active'] is 1
+        
+        if not any_active and queue.is_queue_empty():
+            # Finds the process that reached the target node with the least total distance
+            smallest_dist = {'total_dist': math.inf}
+            for pid in threads_of_messages:
+                thread_of_messages = threads_of_messages[pid]
+                if 'reached_end' in thread_of_messages and thread_of_messages['reached_end'] is 1 and thread_of_messages['args']['total_dist'] < smallest_dist['total_dist']:
+                    smallest_dist = thread_of_messages['args']
+            
+            # Deletes useless information for the frontend
+            if 'pid' in smallest_dist:
+                del smallest_dist['pid']
+            if 'reached_end' in smallest_dist:
+                del smallest_dist['reached_end']
+
+            if smallest_dist['total_dist'] is math.inf:
+                smallest_dist = {'message': 'The alghorithim couldn\'t come to an end becauce boths nodes are not connected.'}
+
+            # Emits the final message via socket and kill's the temp queue
+            print(f'Emiting {message} with value {smallest_dist} via socket back to client.')
+            try:
+                emit(message, smallest_dist)
+            except Exception as e:
+                print(f'{Fore.RED}Exception {e}{Style.RESET_ALL}')
+            listener.stop_listening()
+            queue.self_delete()
+            queue.close_connection()
+            print(f'Queue {queue.get_queue_name()} and it\'s listener were killed.')
+        print(f'Out - {message}: Threads of messages is {threads_of_messages}.')
+    else:
+        try:
+            print(f'Emiting {message} with value {args} via socket back to client.')
+            try:
+                emit(message, args)
+            except Exception as e:
+                print(f'{Fore.RED}Exception {e}{Style.RESET_ALL}')
+            listener.stop_listening()
+            queue.self_delete()
+            queue.close_connection()
+            print(f'Queue {queue.get_queue_name()} and it\'s listener were killed.')
+        except Exception as e:
+            print(f'{Fore.RED}Exception {e}{Style.RESET_ALL}')
 
 def add_node_controller(nc):
     global node_controller
@@ -309,4 +327,4 @@ def run():
     global socketio
     
     app.config['SECRET_KEY'] = 'mysecret'
-    socketio.run(app, debug=True, port=80, host='0.0.0.0')
+    socketio.run(app, debug=True, port=SOCKET_PORT, host=SOCKET_HOST)

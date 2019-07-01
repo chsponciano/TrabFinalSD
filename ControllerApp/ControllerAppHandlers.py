@@ -2,7 +2,7 @@ from ControllerAppSender import ControllerAppSender
 from ControllerAppQueue import ControllerAppQueue
 from ControllerAppTaskScheduler import ControllerAppTaskScheduler
 from NodeController import NodeController
-from ControllerAppConstants import CONTROLLER_QUEUE, RABBIT_HOST
+from ControllerAppConstants import CONTROLLER_QUEUE
 from colorama import Fore, Style
 import os
 
@@ -29,9 +29,7 @@ class ControllerAppHandlers(object):
 
         try:
             if self.node_controller.has_control_over_nodes(start_node, target_node):
-                if algorithm == 'dijkstra':
-                    algorithm = f'start_{algorithm}'
-                
+                algorithm = f'start_{algorithm}'
                 self.sender.send_message_to(
                     to=start_node, 
                     message={
@@ -55,18 +53,18 @@ class ControllerAppHandlers(object):
             node_name = node['node_name']
             processing_time = node['processing_time']
             connections = node['connections']
-            #self.amazon.new_instance(node_name, processing_time)
-            self.amazon.start_instance(node_name)
-            for connection in connections:
-                self.sender.send_message_to(
-                    to=node_name, 
-                    message={
-                        'message': 'connect_to',
-                        'args': {
-                            'node': connection
-                        }
-                    }
-                )
+            self.amazon.new_instance(node_name, processing_time)
+            #self.amazon.start_instance(node_name)
+            # for connection in connections:
+            #     self.sender.send_message_to(
+            #         to=node_name, 
+            #         message={
+            #             'message': 'connect_to',
+            #             'args': {
+            #                 'node': connection
+            #             }
+            #         }
+            #     )
         
         self.node_controller.reset_all_pinged_back()
         all_nodes = self.node_controller.get_all_node_names()

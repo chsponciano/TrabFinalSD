@@ -20,3 +20,10 @@ class ControllerAppQueue(object):
 
     def get_queue_name(self):
         return self.queue_name
+
+    def is_queue_empty(self, queue=None):
+        if queue is None:
+            queue = self.get_queue_name()
+        method, properties, body = self.get_channel().basic_get(queue=queue)
+        return method == None
+            
