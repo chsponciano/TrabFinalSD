@@ -53,9 +53,7 @@ class ControllerAppHandlers(object):
         down_nodes = self.node_controller.get_down_nodes()
         for node in down_nodes:
             node_name = node['node_name']
-            processing_time = node['processing_time']
             connections = node['connections']
-            #self.amazon.new_instance(node_name, processing_time)
             self.amazon.start_instance(node_name)
             for connection in connections:
                 self.sender.send_message_to(

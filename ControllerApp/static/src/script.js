@@ -21,6 +21,10 @@ class Edge {
     }
 }
 
+function statusButton(e) {
+    $('.btn').attr('disabled', e);
+}
+
 function existEdge(source, target) {
     for (var [key, value] of edges) {
         if ((value.source == source && value.target == target) || (value.source == target && value.target == source)) {
@@ -218,25 +222,27 @@ function getAllNodes() {
 }
 
 function createNode() {
-    $(".img-update").addClass('hide');
-    $(".img-updating").removeClass('hide');
-
     idx = $('.id_node').val();
     cust = $('.ms_node').val();
 
-    $.post(
-        "http://18.191.149.251/create_node", {
-            node_name: idx,
-            processing_time: cust
-        },
-        function(data) {
-            console.log("createNode: " + JSON.stringify(data));
-            if (!nodes.has(data.node_name)) {
-                nodes.set(data.node_name, new Node(data.node_name, data.processing_time));
+    if (!nodes.has(idx)) {
+        $(".img-update").addClass('hide');
+        $(".img-updating").removeClass('hide');
+
+        $.post(
+            "http://18.191.149.251/create_node", {
+                node_name: idx,
+                processing_time: cust
+            },
+            function(data) {
+                console.log("createNode: " + JSON.stringify(data));
+                if (data.success == 1) {
+                    nodes.set(data.node_name, new Node(data.node_name, data.processing_time));
+                    refresh_screen();
+                }
             }
-            refresh_screen();
-        }
-    );
+        );
+    }
 
     $('.id_node').val('');
     $('.ms_node').val('');
@@ -252,17 +258,19 @@ function deleteNode(idx) {
         },
         function(data) {
             console.log("deleteNode: " + JSON.stringify(data));
-            if (nodes.has(data.node.node_name)) {
-                nodes.delete(data.node.node_name)
-            }
-
-            for (var [key, value] of edges) {
-                if ((value.source == data.node.node_name) || (value.target == data.node.node_name)) {
-                    edges.delete(key);
+            if (data.success == 1) {
+                if (nodes.has(data.node.node_name)) {
+                    nodes.delete(data.node.node_name)
                 }
-            }
 
-            refresh_screen();
+                for (var [key, value] of edges) {
+                    if ((value.source == data.node.node_name) || (value.target == data.node.node_name)) {
+                        edges.delete(key);
+                    }
+                }
+
+                refresh_screen();
+            }
         }
     );
 }
@@ -280,11 +288,11 @@ function createConnection() {
         },
         function(data) {
             console.log("createConnection: " + JSON.stringify(data));
-            edges.set('e' + count_edge, new Edge('e' + count_edge, data.node1, data.node2));
-            count_edge++;
-            // edges.set('e' + count_edge, new Edge('e' + count_edge, data.node2, data.node1));
-            // count_edge++;
-            refresh_screen();
+            if (data.success == 1) {
+                edges.set('e' + count_edge, new Edge('e' + count_edge, data.node1, data.node2));
+                count_edge++;
+                refresh_screen();
+            }
         }
     );
     $('#cc_origem').val('');
@@ -303,12 +311,14 @@ function deleteConnection() {
             node2: node2
         },
         function(data) {
-            for (var [key, value] of edges) {
-                if ((value.source == data.node1 && value.target == data.node2) || (value.source == data.node2 && value.target == data.node1)) {
-                    edges.delete(key);
+            if (data.success == 1) {
+                for (var [key, value] of edges) {
+                    if ((value.source == data.node1 && value.target == data.node2) || (value.source == data.node2 && value.target == data.node1)) {
+                        edges.delete(key);
+                    }
                 }
+                refresh_screen();
             }
-            refresh_screen();
         }
     );
     $('#cc_origem').val('');
@@ -336,9 +346,12 @@ function startCalcRoute() {
         );
     });
     socket.on('calcRouteResponse', function(data) {
-        init_path();
-        print_logs('Inciando ' + data.algorithm);
         console.log(data);
+        if (data.success == 1) {
+            init_path();
+            print_logs('Inciando ' + data.algorithm);
+            statusButton(true);
+        }
     });
     socket.on('everyNodeCallbackMessage', function(data) {
         draw_node_visited(data.current_node);
@@ -349,6 +362,7 @@ function startCalcRoute() {
         draw_path(data.visited_nodes)
         print_logs("Total do percurso: " + data.total_dist);
         console.log(data);
+        statusButton(false);
         socket.disconnect();
     });
 
