@@ -172,15 +172,20 @@ def kill():
         }
     )
 
+queue = None
+listener = None
+
 @socketio.on('calc_route')
 def calc_route(args):
     print(f'{Fore.RED}Socket message: {args}{Style.RESET_ALL}')
 
-    listener = None
+    global listener
+    global queue
 
     try:
         global sender
         global node_controller
+        
 
         SOCKET_QUEUE = f'SQ{time()}'
         args['callback_queue'] = SOCKET_QUEUE
@@ -196,6 +201,7 @@ def calc_route(args):
                 'every_node_callback_message': lambda args: every_node_callback_message(args, every_node_callback_message_to_frontend, threads_of_messages),
                 'end_algorithm_callback_message': lambda args: end_algorithm_callback_message(args, listener, queue, end_algorithm_callback_message_to_frontend, threads_of_messages),
             }
+            
             queue = ControllerAppQueue(queue_name=SOCKET_QUEUE)
             print(f'Temp queue with name {SOCKET_QUEUE} created.')
             listener = ControllerAppListener(queue=queue, queue_name=SOCKET_QUEUE, message_handler_mapper=handlers)
@@ -251,9 +257,19 @@ def every_node_callback_message(args, message, threads_of_messages):
             emit(message, args)
         except Exception as e:
             print(f'{Fore.RED}Exception {e}{Style.RESET_ALL}')
-    
+
+
+@app.route('/end_dijkstra', methods=['GET', 'POST'])
+def end_dijkstra():
+    global listener
+    global queue
+    listener.stop_listening()
+    queue.self_delete()
+    queue.close_connection()
+    return 'lol'
 
 def end_algorithm_callback_message(args, listener, queue, message, threads_of_messages):
+    #emit(message, args)
     if args['algorithm'] == 'dijkstra':
         print(f'In - {message}: Threads of messages is {threads_of_messages}.')
         # Update the status of the pid in question on the dictionary of threads

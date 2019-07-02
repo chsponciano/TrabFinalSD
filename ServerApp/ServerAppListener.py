@@ -39,11 +39,19 @@ class ServerAppListener(object):
         else:
             print(f'No implementation for {message} found!')
 
-    def binary_to_dict(self, binary_json) -> dict:
+    def binary_to_dict(self, binary_json):
         return literal_eval(binary_json.decode('utf-8'))
 
     def start_listening(self):
-        self.queue.get_channel().start_consuming()
+        try:
+            self.queue.get_channel().start_consuming()
+        except Exception as e:
+            with open('error.txt', 'a') as out:
+                out.write(e)
+            #print(f'{Fore.RED}ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR')
+            #print('Cannot handle message. {\'message\': \'dijkstra\', \'args\': ' + args + '} - ' + e)
+            #print(f'{Style.RESET_ALL}')
+            #sleep(60)
 
     def start_listening_async(self):
         thread = Thread(target=self.start_listening)
@@ -60,14 +68,10 @@ class ServerAppListener(object):
 
     def get_default_message_handler_mapper(self):
         return {
-            #'connect_to': self.handlers.connect_to,
             'ping_everyone': self.handlers.ping_everyone,
             'ping': self.handlers.ping,
             'dijkstra': self.handlers.run_dijkstra,
             'start_dijkstra': self.handlers.start_dijkstra,
-            'next_neightboor': self.handlers.run_next_neightboor,
-            'start_next_neightboor': self.handlers.start_next_neightboor,
             'healthcheck': self.handlers.healthcheck,
-            #'delete_connection': self.handlers.delete_connection,
             'kill': self.handlers.kill
         }

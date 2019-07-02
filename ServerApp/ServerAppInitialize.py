@@ -19,6 +19,8 @@ mapper = ServerAppMapper(queue)
 sender = ServerAppSender(queue)
 listener = ServerAppListener(queue, sender, mapper)
 
-listener.start_listening_async()
-
 print(f'Queue initialized with name {this_queue_name} and processing time of {processing_time}.')
+
+listener.start_listening()
+
+

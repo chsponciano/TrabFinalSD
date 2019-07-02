@@ -352,6 +352,15 @@ function startCalcRoute() {
     $('#cr_algoritmo').val('');
 }
 
+function endCalcRoute() {
+    $.get(
+        serverIp + "/end_dijkstra", {},
+        function(data) {
+            console.log('End_dijkstra' + data);
+        }
+    );
+}
+
 function init_logs_path() {
     logs_path = [];
     document.getElementById('logs-path').innerHTML = '';
